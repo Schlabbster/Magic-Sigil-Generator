@@ -117,16 +117,6 @@ input[type="color"]{width:64px; height:36px; padding:0; border:none; background:
 .foot{padding:0 16px 16px; color:var(--muted); font-size:12px; line-height:1.35;}
 
 /* Side panels */
-/* Ensure left/right panels always scroll if content exceeds viewport */
-.sideCard{
-  display:flex;
-  flex-direction:column;
-}
-.sideCard .panel{
-  flex: 1 1 auto;
-  overflow:auto;
-}
-
 .sideCard{height: calc(100vh - 20px);}
 .sideCard .panel{
   max-height: calc(100vh - 20px);
@@ -163,11 +153,9 @@ input[type="color"]{width:64px; height:36px; padding:0; border:none; background:
   aspect-ratio: 1 / 1;
   display:grid;
   place-items:center;
-  max-height: min(68vh, 820px);
-  max-width: min(92%, 820px);
+  max-height: min(72vh, 920px);
+  max-width: min(100%, 920px);
   margin: 0 auto;
-  padding: 14px;
-  box-sizing: border-box;
 }
 canvas{
   width:100%;
@@ -324,41 +312,6 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
         <h1>Procedural Sigil Generator</h1>
         <p>Clean geometric seals, optional glow. Control rings, complexity, interior density, symmetry, and export PNG/GIF/MP4 (MP4 falls back to WebM if needed).</p>
 
-        
-        
-        <!-- Advanced Options Toggle -->
-        <div style="margin-top:14px;">
-  <button id="advancedToggleBtn" type="button" class="miniBtn" style="width:100%; display:flex; align-items:center; justify-content:space-between;">
-    <span>Advanced Options</span>
-    <span class="badge" id="advancedBadge">hidden</span>
-  </button>
-</div>
-
-        <div id="advancedPanel" style="display:none; margin-top:10px;">
-
-          <div class="row">
-            <label for="ringRole">Ring Role (default)</label>
-            <select id="ringRole">
-              <option value="structure">Structure</option>
-              <option value="ornament">Ornament</option>
-              <option value="glyph">Glyph</option>
-              <option value="connector">Connector</option>
-            </select>
-            <div class="badge">layer</div>
-          </div>
-
-          <div class="historyHead" style="margin-top:14px; align-items:center;">
-            <h2>Layer System</h2>
-            <div class="badge">groups</div>
-          </div>
-          <p style="margin-top:6px; margin-bottom:10px;">
-            Toggle groups, pick color source, override stroke style, and set opacity per layer.
-          </p>
-
-          <div id="layerSystemUI"></div>
-
-        </div>
-
         <div class="row">
           <label for="style">Style</label>
           <select id="style">
@@ -385,16 +338,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
             <option value="10">Concentric squares</option>
             <option value="11">Vesica / lens</option>
             <option value="12">Rosette</option>
-          
-            <option value="13">Solar wheel</option>
-            <option value="14">Celtic weave</option>
-            <option value="15">Petal bloom</option>
-            <option value="16">Hexagram seal</option>
-            <option value="17">Runic lattice</option>
-            <option value="18">Crosshair alchemy</option>
-            <option value="19">Spiral orbit</option>
-            <option value="20">Gate sigil</option>
-</select>
+          </select>
           <div class="badge">shape</div>
         </div>
 
@@ -406,32 +350,20 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
 
         <div class="row">
           <label for="complex">Complexity</label>
-          <input id="complex" type="range" min="1" max="20" step="1" value="6"/>
-          <input id="complexN" type="number" min="1" max="20" step="1" value="6"/>
+          <input id="complex" type="range" min="1" max="10" step="1" value="6"/>
+          <input id="complexN" type="number" min="1" max="10" step="1" value="6"/>
         </div>
 
         <div class="row">
           <label for="interior">Interior Density</label>
-          <input id="interior" type="range" min="0" max="150" step="1" value="25"/>
-          <input id="interiorN" type="number" min="0" max="150" step="1" value="25"/>
+          <input id="interior" type="range" min="0" max="100" step="1" value="25"/>
+          <input id="interiorN" type="number" min="0" max="100" step="1" value="25"/>
         </div>
 
         <div class="row">
           <label for="symmetry">Symmetry</label>
-          <input id="symmetry" type="range" min="3" max="24" step="1" value="8"/>
-          <input id="symmetryN" type="number" min="3" max="24" step="1" value="8"/>
-        </div>
-
-        
-        <div class="row">
-          <label for="strokeStyle">Stroke Style</label>
-          <select id="strokeStyle">
-            <option value="solid">Solid</option>
-            <option value="dash">Dashed</option>
-            <option value="dot">Dotted</option>
-            <option value="double">Double</option>
-          </select>
-          <div class="badge">lines</div>
+          <input id="symmetry" type="range" min="3" max="16" step="1" value="8"/>
+          <input id="symmetryN" type="number" min="3" max="16" step="1" value="8"/>
         </div>
 
         <div class="row">
@@ -450,13 +382,6 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
           <label for="color">Color</label>
           <input id="color" type="color" value="#d9b35a"/>
           <div class="badge mono" id="colorHex">#d9b35a</div>
-        </div>
-
-
-        <div class="row">
-          <label for="color2">Accent</label>
-          <input id="color2" type="color" value="#6ad9ff"/>
-          <div class="badge mono" id="color2Hex">#6ad9ff</div>
         </div>
 
         <div class="row">
@@ -522,15 +447,6 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
         <h1 style="font-size:16px; margin-bottom:6px;">Text & Inscriptions</h1>
         <p>Ring text on multiple rings (each can have its own phrase), custom fonts, and a central symbol inside the smallest ring.</p>
 
-        <div id="advancedRingRoles" style="display:none;">
-<div class="historyHead" style="margin-top:6px; align-items:center;">
-          <h2>Ring Roles</h2>
-          <div class="badge">per ring</div>
-        </div>
-        <p style="margin-top:6px; margin-bottom:10px;">Assign each ring to a role. That role routes the ring’s drawing into the corresponding layer group.</p>
-        <div id="ringRolesUI"></div>
-</div>
-
         <div class="row">
           <label for="ringTextMode">Ring Text Mode</label>
           <select id="ringTextMode">
@@ -565,8 +481,8 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
 
         <div class="row wrap" style="margin-top:6px;">
           <label style="flex:1;">Bulk</label>
-          <button id="selectAll" type="button" class="miniBtn">Select all</button>
-          <button id="selectNone" type="button" class="miniBtn">Select none</button>
+          <button id="selectAll" type="button" style="padding:8px 10px; border-radius:10px;">Select all</button>
+          <button id="selectNone" type="button" style="padding:8px 10px; border-radius:10px;">Select none</button>
         </div>
 
         <div class="foot" style="padding:0; margin-top:10px;">
@@ -666,85 +582,6 @@ const canvas = el('c');
 const ctx = canvas.getContext('2d');
 const statusEl = el('status');
 
-
-let ACTIVE_STROKE_STYLE = "solid";
-let ACTIVE_BG = "#000000";
-
-/* ---------------- Layer groups ---------------- */
-const LAYER_KEYS = ["structure","ornament","glyphs","connectors","text","center"];
-const LAYER_LABELS = {
-  structure: "Structure",
-  ornament: "Ornament",
-  glyphs: "Glyphs",
-  connectors: "Connectors",
-  text: "Text",
-  center: "Center"
-};
-// config lives in UI + snapshot
-let layerState = {
-  structure: { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:1.00 },
-  ornament:  { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:0.92 },
-  glyphs:    { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:0.86 },
-  connectors:{ on:true, colorSource:"primary", strokeOverride:"inherit", opacity:0.70 },
-  text:      { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:0.78 },
-  center:    { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:0.90 }
-};
-
-let CURRENT_LAYER = { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:1.0 };
-
-function clamp01(x){ x = Number(x); if(!isFinite(x)) return 1; return Math.max(0, Math.min(1, x)); }
-function normalizeRole(v){
-  v = (v||"").toString().toLowerCase();
-  if(v === "structure" || v === "ornament" || v === "glyphs" || v === "connectors" || v === "text" || v === "center") return v;
-  if(v === "glyph") return "glyphs";
-  if(v === "connector") return "connectors";
-  return "structure";
-}
-function layerConfig(role){
-  const key = normalizeRole(role);
-  return layerState[key] || layerState.structure;
-}
-function applyLayer(roleKey, fn){
-  const key = normalizeRole(roleKey);
-  const cfg = layerConfig(key);
-  if(!cfg || cfg.on === false) return;
-
-  const prevLayer = CURRENT_LAYER;
-  const prevStroke = ACTIVE_STROKE_STYLE;
-  CURRENT_LAYER = {
-    on: cfg.on !== false,
-    colorSource: (cfg.colorSource === "accent") ? "accent" : "primary",
-    strokeOverride: (cfg.strokeOverride || "inherit"),
-    opacity: clamp01(cfg.opacity)
-  };
-
-  // stroke override
-  const ov = (CURRENT_LAYER.strokeOverride || "inherit");
-  if(ov !== "inherit") ACTIVE_STROKE_STYLE = ov;
-
-  try{ fn?.(); }
-  finally{
-    ACTIVE_STROKE_STYLE = prevStroke;
-    CURRENT_LAYER = prevLayer;
-  }
-}
-
-function layerColor(colMain, colSub){
-  return (CURRENT_LAYER.colorSource === "accent") ? colSub : colMain;
-}
-function applyStrokeStyle(width){
-  const st = (ACTIVE_STROKE_STYLE || "solid");
-  ctx.setLineDash([]);
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  if(st === "dash"){
-    ctx.setLineDash([Math.max(1, width*3.2), Math.max(1, width*2.2)]);
-  }else if(st === "dot"){
-    ctx.lineCap = "round";
-    ctx.setLineDash([0.1, Math.max(1, width*2.2)]);
-  }
-}
-
 /* ---------------- Accent theming (follows sigil color) ---------------- */
 function setAccentFromHex(hex){
   const rgb = hexToRgb((hex||"#d9b35a").toString());
@@ -806,12 +643,9 @@ function currentSnapshot(){
       complex: Number(el('complex').value),
       interior: Number(el('interior').value),
       symmetry: Number(el('symmetry').value),
-      strokeStyle: (el('strokeStyle')?.value || "solid"),
       stroke: Number(el('stroke').value),
       glow: Number(el('glow').value),
       color: el('color').value,
-      color2: (el('color2')?.value || "#6ad9ff"),
-      ringRole: (el('ringRole')?.value || "structure"),
       seed: Number(el('seed').value),
       animate: !!el('animate').checked,
       speed: Number(el('speed').value),
@@ -823,8 +657,6 @@ function currentSnapshot(){
 
       darkBg: !!darkBg,
       ringTextState: ringTextState,
-      ringRoleState: ringRoleState,
-      layerState: layerState,
       inscriptionState: inscriptionState,
       centerState: centerState,
       centerImageDataURL: (centerState?.mode === "image") ? captureCenterImageDataURL() : null
@@ -857,12 +689,9 @@ async function restoreSnapshot(item){
   el('complex').value = p.complex; el('complexN').value = p.complex;
   el('interior').value = p.interior; el('interiorN').value = p.interior;
   el('symmetry').value = p.symmetry; el('symmetryN').value = p.symmetry;
-  if(p.strokeStyle && el('strokeStyle')) el('strokeStyle').value = p.strokeStyle;
   el('stroke').value = p.stroke; el('strokeN').value = p.stroke;
   el('glow').value = p.glow; el('glowN').value = p.glow;
   el('color').value = p.color; el('colorHex').textContent = (p.color||"").toLowerCase();
-  if(p.color2 && el('color2')){ el('color2').value = p.color2; el('color2Hex').textContent = (p.color2||"").toLowerCase(); }
-  if(p.ringRole && el('ringRole')) el('ringRole').value = p.ringRole;
   el('seed').value = p.seed;
   el('speed').value = p.speed; el('speedN').value = p.speed;
   el('gifFps').value = p.gifFps; el('gifFpsN').value = p.gifFps;
@@ -873,8 +702,6 @@ async function restoreSnapshot(item){
   // state blobs
   darkBg = !!p.darkBg;
   ringTextState = p.ringTextState || {};
-  ringRoleState = p.ringRoleState || {};
-  layerState = p.layerState || layerState;
   inscriptionState = p.inscriptionState || { rotateTarget:"whole", defaultText:"" };
   centerState = p.centerState || { mode:"none", text:"", size:110 };
 
@@ -884,8 +711,6 @@ async function restoreSnapshot(item){
   // rebuild dependent UIs
   buildInscriptionsUI();
   buildRingTextList(true);
-  buildLayerSystemUI();
-  buildRingRolesUI(true);
 
   // restore center image if embedded
   centerImageBitmap = null;
@@ -1062,35 +887,13 @@ function setGlow(color, strength){
   ctx.shadowOffsetY = 0;
 }
 function stroke(pathFn, width, strokeStyle, alpha=1){
-  const st = (ACTIVE_STROKE_STYLE || "solid");
   ctx.save();
-  ctx.globalAlpha = alpha * (CURRENT_LAYER?.opacity ?? 1);
-
-  // base style
+  ctx.globalAlpha = alpha;
   ctx.lineWidth = width;
   ctx.strokeStyle = strokeStyle;
-  applyStrokeStyle(width);
-
   ctx.beginPath();
   pathFn();
   ctx.stroke();
-
-  // "double" is simulated by carving the center with background color,
-  // leaving two edges (works well for rings/polys/stars).
-  if(st === "double"){
-    ctx.save();
-    ctx.setLineDash([]);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.globalAlpha = alpha;
-    ctx.lineWidth = Math.max(0.6, width*0.55);
-    ctx.strokeStyle = ACTIVE_BG;
-    ctx.beginPath();
-    pathFn();
-    ctx.stroke();
-    ctx.restore();
-  }
-
   ctx.restore();
 }
 function line(x1,y1,x2,y2){ ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); }
@@ -1123,28 +926,18 @@ function orbs(r, count, orbR, col, w, a=1, rot=0, innerDot=true){
   }
 }
 function chords(r, count, step, col, w, a=1, rot=0){
-  const st = (ACTIVE_STROKE_STYLE || "solid");
-  const drawOnce = (strokeCol, width)=>{
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = width;
-    applyStrokeStyle(width);
-    for(let i=0;i<count;i++){
-      const a1 = rot + i*(Math.PI*2/count);
-      const a2 = rot + (i+step)*(Math.PI*2/count);
-      ctx.beginPath();
-      line(Math.cos(a1)*r, Math.sin(a1)*r, Math.cos(a2)*r, Math.sin(a2)*r);
-      ctx.stroke();
-    }
-    ctx.restore();
-  };
-
-  drawOnce(col, w);
-  if(st === "double"){
-    // carve
-    drawOnce(ACTIVE_BG, Math.max(0.6, w*0.55));
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.strokeStyle = col;
+  ctx.lineWidth = w;
+  for(let i=0;i<count;i++){
+    const a1 = rot + i*(Math.PI*2/count);
+    const a2 = rot + (i+step)*(Math.PI*2/count);
+    ctx.beginPath();
+    line(Math.cos(a1)*r, Math.sin(a1)*r, Math.cos(a2)*r, Math.sin(a2)*r);
+    ctx.stroke();
   }
+  ctx.restore();
 }
 
 /* ---------------- Text / runes ---------------- */
@@ -1195,51 +988,35 @@ function drawCircularTextFull(text, r, color, alpha, sizePx, rot=0){
   ctx.restore();
 }
 function runeGlyph(rng, x,y, s, rot=0){
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.rotate(rot);
-
-  const spine = s*0.6;
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
   ctx.beginPath();
-  ctx.moveTo(0,-spine);
-  ctx.lineTo(0,spine);
-
-  const branches = 1 + Math.floor(rng()*3);
-  for(let i=0;i<branches;i++){
-    const t = -spine + (i+1)*(2*spine/(branches+1));
-    const dir = rng()<0.5 ? -1 : 1;
-    const len = s*(0.35 + rng()*0.25);
-    ctx.moveTo(0,t);
-    ctx.lineTo(dir*len, t - len*0.25);
-    if(rng()<0.4){
-      ctx.moveTo(0,t);
-      ctx.lineTo(dir*len, t + len*0.25);
+  const segs = randInt(rng,3,7);
+  for(let i=0;i<segs;i++){
+    const ax = randRange(rng,-0.45,0.45)*s;
+    const ay = randRange(rng,-0.45,0.45)*s;
+    const bx = ax + randRange(rng,-0.55,0.55)*s;
+    const by = ay + randRange(rng,-0.55,0.55)*s;
+    ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+    if(rng()<0.32){
+      const cx = bx + randRange(rng,-0.25,0.25)*s;
+      const cy = by + randRange(rng,-0.25,0.25)*s;
+      ctx.moveTo(bx,by); ctx.lineTo(cx,cy);
     }
   }
-
-  ctx.stroke();
-  ctx.restore();
+  ctx.restore(); ctx.stroke();
 }
 function ringRunes(rng, r, count, col, w, alpha, rot=0){
-  const st = (ACTIVE_STROKE_STYLE || "solid");
-  const drawOnce = (strokeCol, width)=>{
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = width;
-    applyStrokeStyle(width);
-    const s = Math.max(10, r*0.08);
-    for(let i=0;i<count;i++){
-      const a = rot + i*(Math.PI*2/count);
-      const x = Math.cos(a)*r, y = Math.sin(a)*r;
-      runeGlyph(rng, x, y, s, a + Math.PI/2);
-    }
-    ctx.restore();
-  };
-  drawOnce(col, w);
-  if(st === "double"){
-    drawOnce(ACTIVE_BG, Math.max(0.6, w*0.55));
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = col;
+  ctx.lineWidth = w;
+  const s = Math.max(10, r*0.08);
+  for(let i=0;i<count;i++){
+    const a = rot + i*(Math.PI*2/count);
+    const x = Math.cos(a)*r, y = Math.sin(a)*r;
+    runeGlyph(rng, x, y, s, a + Math.PI/2);
   }
+  ctx.restore();
 }
 
 /* ---------------- Central symbol ---------------- */
@@ -1309,9 +1086,10 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
   const innerR = R - ringGap*1.05;
   const midR   = R - ringGap*1.95;
   const coreR  = Math.max(R*0.15, R - ringGap*(3.2));
-  const k = Math.max(3, Math.min(24, Math.floor(symmetry)));
-  const dense = Math.min(1, (complexity-1)/19);
-  const add = (interior/100); // can exceed 1 for extra detail
+
+  const add = interior/100;
+  const k = Math.max(3, Math.min(16, symmetry));
+  const dense = Math.min(1, (complexity-1)/9);
 
   ring(innerR, lw*0.85, colMain, 0.95);
   ring(coreR*1.55, lw*0.75, colSub, 0.75);
@@ -1405,151 +1183,7 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
     }
     ctx.restore();
     if(add>0.55) chords(innerR*0.90, n, 5, colSub, lw*0.42, 0.45, rot);
-  
-} else if(tpl===13){
-  // Solar wheel: spokes + rim nodes
-  const n = Math.max(6, Math.min(24, k + Math.floor(dense*10)));
-  ring(innerR*0.86, lw*0.75, colMain, 0.9);
-  orbs(innerR*0.86, n, lw*(2.0 + 1.0*dense), colSub, lw*0.5, 0.65, rot, add>0.65);
-  ctx.save();
-  ctx.globalAlpha = 0.75;
-  ctx.strokeStyle = colMain;
-  ctx.lineWidth = lw*0.6;
-  for(let i=0;i<n;i++){
-    const a = rot + i*(Math.PI*2/n);
-    ctx.beginPath();
-    line(Math.cos(a)*coreR*0.45, Math.sin(a)*coreR*0.45, Math.cos(a)*innerR*0.86, Math.sin(a)*innerR*0.86);
-    ctx.stroke();
-    if(add>0.85){
-      ctx.beginPath();
-      line(Math.cos(a)*coreR*0.20, Math.sin(a)*coreR*0.20, Math.cos(a)*coreR*0.45, Math.sin(a)*coreR*0.45);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-  if(add>0.45) chords(innerR*0.86, n, 3, colSub, lw*0.45, 0.45, rot+0.08);
-
-} else if(tpl===14){
-  // Celtic weave: alternating chords + inner knot ring
-  const n = Math.max(8, Math.min(24, k + 4));
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  ring(innerR*0.66, lw*0.65, colSub, 0.75);
-
-  const stepA = 2 + Math.floor(dense*3);
-  const stepB = 3 + Math.floor(dense*4);
-  chords(innerR*0.90, n, stepA, colSub, lw*0.50, 0.55, rot);
-  chords(innerR*0.90, n, stepB, colMain, lw*0.40, 0.50, rot + Math.PI/n);
-
-  if(add>0.55){
-    orbs(innerR*0.66, n, lw*1.9, colMain, lw*0.35, 0.55, rot+0.12, false);
-    chords(innerR*0.66, n, stepA, colSub, lw*0.40, 0.40, rot+0.06);
-  }
-
-} else if(tpl===15){
-  // Petal bloom: flower of circles
-  const n = Math.max(6, Math.min(20, k + Math.floor(dense*6)));
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  ctx.save();
-  ctx.globalAlpha = 0.70;
-  ctx.strokeStyle = colMain;
-  ctx.lineWidth = lw*0.55;
-  const pr = innerR*0.30 + dense*innerR*0.10;
-  for(let i=0;i<n;i++){
-    const a = rot + i*(Math.PI*2/n);
-    const x = Math.cos(a)*innerR*0.34;
-    const y = Math.sin(a)*innerR*0.34;
-    ctx.beginPath();
-    circle(x,y, pr);
-    ctx.stroke();
-    if(add>0.8){
-      ctx.beginPath();
-      circle(x,y, pr*0.55);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-  if(add>0.5) orbs(innerR*0.90, n, lw*(2.2+dense), colSub, lw*0.45, 0.55, rot, false);
-
-} else if(tpl===16){
-  // Hexagram seal: double triangle + orbit nodes
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  stroke(()=>poly(0,0, innerR*0.78, 3, rot), lw*0.9, colMain, 0.9);
-  stroke(()=>poly(0,0, innerR*0.78, 3, rot+Math.PI), lw*0.9, colMain, 0.9);
-  stroke(()=>poly(0,0, innerR*0.52, 6, rot+Math.PI/6), lw*0.6, colSub, 0.75);
-  const n = Math.max(6, Math.min(18, k));
-  if(add>0.25) orbs(innerR*0.78, n, lw*2.4, colSub, lw*0.45, 0.60, rot, add>0.95);
-  if(add>0.65) chords(innerR*0.78, n, 2, colSub, lw*0.40, 0.45, rot+0.12);
-
-} else if(tpl===17){
-  // Runic lattice: polygon + runes + crossing chords
-  const n = Math.max(6, Math.min(24, k + 2));
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  stroke(()=>poly(0,0, innerR*0.76, n, rot), lw*0.65, colSub, 0.75);
-  if(add>0.25){
-    const rc = innerR*0.82;
-    const count = Math.max(28, Math.floor(n*4 + complexity*4));
-    ringRunes(rng, rc, count, colMain, lw*0.45, 0.55, rot);
-  }
-  chords(innerR*0.90, n, 3, colSub, lw*0.45, 0.45, rot);
-  if(add>0.65) chords(innerR*0.90, n, 5, colMain, lw*0.35, 0.35, rot+0.18);
-
-} else if(tpl===18){
-  // Crosshair alchemy: axes + triangles + inner target
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  ctx.save();
-  ctx.globalAlpha = 0.75;
-  ctx.strokeStyle = colMain;
-  ctx.lineWidth = lw*0.75;
-  ctx.beginPath();
-  line(-innerR*0.90, 0, innerR*0.90, 0);
-  line(0, -innerR*0.90, 0, innerR*0.90);
-  ctx.stroke();
-  ctx.restore();
-
-  const triR = innerR*(0.55 + 0.08*dense);
-  stroke(()=>poly(0,0, triR, 3, rot), lw*0.65, colSub, 0.70);
-  if(add>0.55) stroke(()=>poly(0,0, triR*0.72, 3, rot+Math.PI/3), lw*0.55, colSub, 0.55);
-
-  const n = Math.max(4, Math.min(24, k));
-  if(add>0.25) orbs(innerR*0.90, n, lw*2.0, colSub, lw*0.40, 0.55, rot+0.04, false);
-
-} else if(tpl===19){
-  // Spiral orbit: layered rotating stars
-  const n = Math.max(7, Math.min(18, k + 3));
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  const layers = 2 + Math.floor(dense*3) + (add>1.0 ? 1 : 0);
-  for(let i=0;i<layers;i++){
-    const t = i/Math.max(1,layers-1);
-    const rr = innerR*(0.82 - t*0.28);
-    const pts = Math.max(6, Math.min(16, n - i));
-    stroke(()=>star(0,0, rr, rr*(0.28 + 0.08*dense), pts, rot + i*0.45), lw*(0.65 - t*0.18), (i%2?colSub:colMain), 0.70 - t*0.18);
-  }
-  if(add>0.55) chords(innerR*0.90, n, 4, colSub, lw*0.40, 0.40, rot+0.12);
-
-} else if(tpl===20){
-  // Gate sigil: nested squares + portals
-  ring(innerR*0.90, lw*0.75, colMain, 0.9);
-  stroke(()=>poly(0,0, innerR*0.78, 4, rot), lw*0.95, colMain, 0.9);
-  stroke(()=>poly(0,0, innerR*0.58, 4, rot+Math.PI/4), lw*0.70, colSub, 0.75);
-
-  ctx.save();
-  ctx.globalAlpha = 0.70;
-  ctx.strokeStyle = colSub;
-  ctx.lineWidth = lw*0.55;
-  const rr = innerR*0.40;
-  for(let i=0;i<4;i++){
-    const a = rot + i*(Math.PI/2);
-    ctx.save();
-    ctx.rotate(a);
-    ctx.beginPath();
-    ctx.arc(0, -rr*0.55, rr*0.55, 0, Math.PI);
-    ctx.stroke();
-    ctx.restore();
-  }
-  ctx.restore();
-
-  if(add>0.45) chords(innerR*0.78, 8 + Math.floor(dense*8), 3, colSub, lw*0.38, 0.38, rot+0.05);
-} else {
+  } else {
     // Complex orbit
     const n = Math.max(7, Math.min(12, k+3));
     ring(innerR*0.78, lw*0.75, colSub, 0.75);
@@ -1666,199 +1300,6 @@ function buildInscriptionsUI(){
   host.appendChild(block);
 
   bindPair('centerSize','centerSizeN', ()=>{ centerState.size = Number(el('centerSize').value); onParamsChanged(); });
-}
-
-/* ---------------- Layer system UI ---------------- */
-function makeMiniSelect(options, value){
-  const s = document.createElement('select');
-  s.style.minWidth = "120px";
-  s.innerHTML = options.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
-  s.value = value;
-  return s;
-}
-function makeOpacityPair(val){
-  const wrap = document.createElement('div');
-  wrap.style.display = "flex";
-  wrap.style.alignItems = "center";
-  wrap.style.gap = "8px";
-  const r = document.createElement('input');
-  r.type = "range";
-  r.min = "0"; r.max = "1"; r.step = "0.01";
-  r.value = String(clamp01(val));
-  r.style.flex = "1";
-  const n = document.createElement('input');
-  n.type = "number";
-  n.min = "0"; n.max = "1"; n.step = "0.01";
-  n.value = String(clamp01(val));
-  n.style.width = "92px";
-  const sync = (fromRange)=>{
-    const v = clamp01(fromRange ? r.value : n.value);
-    r.value = String(v);
-    n.value = String(v);
-  };
-  r.addEventListener('input', ()=>sync(true));
-  n.addEventListener('input', ()=>sync(false));
-  wrap.appendChild(r); wrap.appendChild(n);
-  return {wrap, range:r, num:n};
-}
-
-function buildLayerSystemUI(){
-  const host = el('layerSystemUI');
-  if(!host) return;
-  host.innerHTML = "";
-
-  for(const key of LAYER_KEYS){
-    layerState[key] = layerState[key] || { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:1 };
-    const cfg = layerState[key];
-
-    const row = document.createElement('div');
-    row.className = "inscBlock";
-    row.style.margin = "10px 0";
-    row.style.gap = "10px";
-
-    const head = document.createElement('div');
-    head.style.display = "flex";
-    head.style.alignItems = "center";
-    head.style.justifyContent = "space-between";
-    head.style.gap = "10px";
-
-    const left = document.createElement('div');
-    left.style.display = "flex";
-    left.style.alignItems = "center";
-    left.style.gap = "10px";
-
-    const cb = document.createElement('input');
-    cb.type = "checkbox";
-    cb.checked = cfg.on !== false;
-    cb.addEventListener('change', ()=>{ cfg.on = !!cb.checked; onParamsChanged(); });
-
-    const title = document.createElement('div');
-    title.style.fontWeight = "750";
-    title.style.fontSize = "13px";
-    title.textContent = LAYER_LABELS[key] || key;
-
-    left.appendChild(cb); left.appendChild(title);
-
-    const pill = document.createElement('div');
-    pill.className = "badge";
-    pill.textContent = key;
-    head.appendChild(left);
-    head.appendChild(pill);
-
-    const grid = document.createElement('div');
-    grid.style.display = "grid";
-    grid.style.gridTemplateColumns = "1fr";
-    grid.style.gap = "10px";
-
-    // color source
-    const r1 = document.createElement('div');
-    r1.className = "row";
-    r1.style.margin = "0";
-    const l1 = document.createElement('label'); l1.textContent = "Color";
-    const s1 = makeMiniSelect([
-      {value:"primary", label:"Primary"},
-      {value:"accent", label:"Accent"}
-    ], cfg.colorSource || "primary");
-    s1.addEventListener('input', ()=>{ cfg.colorSource = s1.value; onParamsChanged(); });
-    const b1 = document.createElement('div'); b1.className = "badge"; b1.textContent = "source";
-    r1.appendChild(l1); r1.appendChild(s1); r1.appendChild(b1);
-
-    // stroke override
-    const r2 = document.createElement('div');
-    r2.className = "row";
-    r2.style.margin = "0";
-    const l2 = document.createElement('label'); l2.textContent = "Stroke";
-    const s2 = makeMiniSelect([
-      {value:"inherit", label:"Inherit"},
-      {value:"solid", label:"Solid"},
-      {value:"dash", label:"Dash"},
-      {value:"dot", label:"Dot"},
-      {value:"double", label:"Double"}
-    ], cfg.strokeOverride || "inherit");
-    s2.addEventListener('input', ()=>{ cfg.strokeOverride = s2.value; onParamsChanged(); });
-    const b2 = document.createElement('div'); b2.className = "badge"; b2.textContent = "override";
-    r2.appendChild(l2); r2.appendChild(s2); r2.appendChild(b2);
-
-    // opacity
-    const r3 = document.createElement('div');
-    r3.className = "row";
-    r3.style.margin = "0";
-    const l3 = document.createElement('label'); l3.textContent = "Opacity (α)";
-    const op = makeOpacityPair(cfg.opacity ?? 1);
-    op.range.addEventListener('input', ()=>{ cfg.opacity = clamp01(op.range.value); onParamsChanged(); });
-    op.num.addEventListener('input', ()=>{ cfg.opacity = clamp01(op.num.value); onParamsChanged(); });
-    r3.appendChild(l3); r3.appendChild(op.wrap);
-
-    grid.appendChild(r1);
-    grid.appendChild(r2);
-    grid.appendChild(r3);
-
-    row.appendChild(head);
-    row.appendChild(grid);
-    host.appendChild(row);
-  }
-}
-
-/* ---------------- Ring roles UI ---------------- */
-let ringRoleState = {}; // key -> role key
-
-function ensureRingRoleDefaults(ringsN){
-  const items = ringKeyLabelList(ringsN);
-  const fallback = normalizeRole(el('ringRole')?.value || "structure");
-  for(const it of items){
-    if(!ringRoleState[it.key]){
-      if(it.key === "outer") ringRoleState[it.key] = "structure";
-      else {
-        const idx = parseInt((it.key.split(":")[1]||"1"),10);
-        ringRoleState[it.key] = fallback || ((idx <= 2) ? "ornament" : (idx <= 4 ? "glyphs" : "structure"));
-      }
-    }
-  }
-  for(const k of Object.keys(ringRoleState)){
-    if(k === "outer") continue;
-    if(k.startsWith("inner:")){
-      const idx = parseInt(k.split(":")[1]||"0",10);
-      if(!(idx>=1 && idx<=ringsN)) delete ringRoleState[k];
-    }
-  }
-}
-
-function buildRingRolesUI(force=false){
-  const host = el('ringRolesUI');
-  if(!host) return;
-  const ringsN = Number(el('rings').value);
-  ensureRingRoleDefaults(ringsN);
-
-  host.innerHTML = "";
-  const block = document.createElement('div');
-  block.className = "inscBlock";
-  block.style.margin = "10px 0 12px 0";
-
-  const items = ringKeyLabelList(ringsN);
-  for(const it of items){
-    const row = document.createElement('div');
-    row.className = "inscRow";
-    const l = document.createElement('label');
-    l.textContent = it.label;
-    const sel = document.createElement('select');
-    sel.style.width = "100%";
-    sel.innerHTML = `
-      <option value="structure">Structure</option>
-      <option value="ornament">Ornament</option>
-      <option value="glyphs">Glyphs</option>
-      <option value="connectors">Connectors</option>
-      <option value="text">Text</option>
-      <option value="center">Center</option>`;
-    sel.value = normalizeRole(ringRoleState[it.key] || "structure");
-    sel.addEventListener('input', ()=>{ ringRoleState[it.key] = normalizeRole(sel.value); onParamsChanged(); });
-    const badge = document.createElement('div');
-    badge.className = "badge";
-    badge.textContent = "role";
-    row.appendChild(l); row.appendChild(sel); row.appendChild(badge);
-    block.appendChild(row);
-  }
-
-  host.appendChild(block);
 }
 
 
@@ -2004,15 +1445,9 @@ function draw(rotAngle=0){
   const white = {r:255,g:255,b:255};
   const near = mix(base, white, 0.20);
   const colMain = rgba(near, 0.96);
-  const accentHex = (el("color2")?.value || "#6ad9ff").toLowerCase();
-  el("color2Hex").textContent = accentHex;
-  const accent = hexToRgb(accentHex);
-  const colSub  = rgba(accent, 0.92);
+  const colSub  = rgba(base, 0.92);
 
   const bg = darkBg ? "#000000" : "#f6f7fb";
-  ACTIVE_BG = bg;
-  ACTIVE_STROKE_STYLE = (el("strokeStyle")?.value || "solid");
-  CURRENT_LAYER = { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:1 };
   clear(bg);
 
   ctx.save();
@@ -2032,57 +1467,32 @@ function draw(rotAngle=0){
     setGlow(rgba(base, 0.35), Math.min(16, glow*0.25));
   }
 
-  // outer boundary ring uses the OUTER ring role
-  ensureRingRoleDefaults(ringsN);
-  const outerRole = normalizeRole(ringRoleState.outer || "structure");
-  applyLayer(outerRole, ()=>{
-    const c = layerColor(colMain, colSub);
-    ring(R*1.02, strokeW*1.6, c, 0.90);
-    ring(R*0.995, strokeW*0.85, c, 0.95);
-  });
+  ring(R*1.02, strokeW*1.6, colSub, 0.9);
+  ring(R*0.995, strokeW*0.85, colMain, 0.95);
 
   // ring stack
-  const extraRings = (complexity>=12 ? 1 : 0) + (complexity>=16 ? 1 : 0);
+  const extraRings = (complexity>=7 ? 1 : 0) + (complexity>=9 ? 1 : 0);
   const totalRings = Math.min(10, ringsN + extraRings);
   const ringRadii = [];
   for(let i=0;i<totalRings;i++){
     const r = R - (i+1)*ringGap;
     if(r < R*0.18) break;
     ringRadii.push(r);
-    // per-ring role routing
-    const key = `inner:${Math.min(i+1, ringsN)}`;
-    const role = normalizeRole(ringRoleState[key] || "structure");
-    applyLayer(role, ()=>{
-      const c = layerColor(colMain, colSub);
-      ring(r, strokeW*(i===0?1.1:0.8), c, 0.95);
-      if(i%2===0) ring(r - ringGap*0.18, strokeW*0.45, c, 0.65);
-    });
+    ring(r, strokeW*(i===0?1.1:0.8), colMain, 0.95);
+    if(i%2===0) ring(r - ringGap*0.18, strokeW*0.45, colSub, 0.65);
   }
 
-  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 20);
-  // template core is routed as Structure by default (still affected by Structure layer settings)
-  let coreR = R*0.22;
-  applyLayer("structure", ()=>{
-    const c1 = layerColor(colMain, colSub);
-    const c2 = colSub;
-    coreR = drawSealTemplate(tpl, rng, R, ringGap, c1, c2, strokeW, complexity, symmetry, interior);
-  });
+  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 12);
+  const coreR = drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, strokeW, complexity, symmetry, interior);
 
   // central symbol
-  applyLayer("center", ()=>{
-    const c1 = layerColor(colMain, colSub);
-    const c2 = colSub;
-    drawCentralSymbol(rng, coreR, c1, c2, strokeW, centerState.mode, centerState.text, Number(centerState.size ?? 110));
-  });
+  drawCentralSymbol(rng, coreR, colMain, colSub, strokeW, centerState.mode, centerState.text, Number(centerState.size ?? 110));
 
   // optional arcane embellishment
   if(style === "arcane" && interior >= 70){
     const n = Math.max(8, Math.min(14, symmetry+2));
     const r = R - ringGap*1.15;
-    applyLayer("ornament", ()=>{
-      const c = layerColor(colMain, colSub);
-      chords(r, n, 3, c, strokeW*0.45, 0.35, randRange(rng,0,Math.PI*2));
-    });
+    chords(r, n, 3, colSub, strokeW*0.45, 0.35, randRange(rng,0,Math.PI*2));
   }
 
   // text helpers
@@ -2102,19 +1512,15 @@ function draw(rotAngle=0){
   }
   function drawTextAtRadiusWithKey(textR, key){
     if(ringTextMode === "none") return;
-    const role = normalizeRole(ringRoleState[key] || "text");
-    applyLayer(role, ()=>{
-      const c = layerColor(colMain, colSub);
-      if(ringTextMode === "runes"){
-        const count = Math.max(24, Math.floor(symmetry*4 + complexity*3));
-        ringRunes(rng, textR, count, c, strokeW*0.55, 0.55, textRot);
-      }else{
-        let txt = textForKey(key);
-        if(ringTextMode === "glyphs") txt = encodeToGlyphs(txt);
-        const sizePx = Math.max(12, Math.floor(textR*0.055));
-        drawCircularTextFull(txt, textR, c, 0.68, sizePx, textRot);
-      }
-    });
+    if(ringTextMode === "runes"){
+      const count = Math.max(24, Math.floor(symmetry*4 + complexity*3));
+      ringRunes(rng, textR, count, colMain, strokeW*0.55, 0.55, textRot);
+    }else{
+      let txt = textForKey(key);
+      if(ringTextMode === "glyphs") txt = encodeToGlyphs(txt);
+      const sizePx = Math.max(12, Math.floor(textR*0.055));
+      drawCircularTextFull(txt, textR, colMain, 0.68, sizePx, textRot);
+    }
   }
 
   // place on selected rings
@@ -2128,7 +1534,7 @@ function draw(rotAngle=0){
   }
 
   ctx.restore();
-  el('meta').textContent = `seed=${seed} · tpl=${tpl} · rings=${ringsN} · sym=${symmetry} · stroke=${ACTIVE_STROKE_STYLE} · text=${ringTextMode}`;
+  el('meta').textContent = `seed=${seed} · tpl=${tpl} · rings=${ringsN} · sym=${symmetry} · text=${ringTextMode}`;
 }
 
 /* ---------------- Animation loop ---------------- */
@@ -2155,7 +1561,6 @@ function stopAnim(){
 function onParamsChanged(){
   try{ setBackgroundGlowFromHex(el('color').value.toLowerCase()); }catch(_e){}
   buildRingTextList(false); // rebuild only if ring count changed
-  buildRingRolesUI(false);
   if(el('animate').checked){
     // animation tick will reflect changes
   }else{
@@ -2173,11 +1578,9 @@ bindPair('speed','speedN', ()=>{});
 bindPair('gifFps','gifFpsN', null);
 bindPair('gifSeconds','gifSecondsN', null);
 
-['ringRole','style','template','strokeStyle','ringTextMode'].forEach(id=> el(id).addEventListener('input', onParamsChanged));
+['style','template','ringTextMode'].forEach(id=> el(id).addEventListener('input', onParamsChanged));
 el('seed').addEventListener('input', onParamsChanged);
 el('color').addEventListener('input', ()=>{ el('colorHex').textContent = el('color').value.toLowerCase(); setAccentFromHex(el('color').value); onParamsChanged(); });
-
-el('color2').addEventListener('input', ()=>{ el('color2Hex').textContent = (el('color2').value||'').toLowerCase(); onParamsChanged(); });
 
 el('animate').addEventListener('change', ()=>{
   if(el('animate').checked){ startAnim(); }
@@ -2297,11 +1700,12 @@ function buildGIF(frames, w, h, fps){
   writeStr(out, "GIF89a");
   writeU16(out, w); writeU16(out, h);
 
-  // No global color table — each frame carries its own local palette (prevents corrupted GIFs)
-  // Packed: GCT flag 0, color resolution 7, sort 0, size 0
-  out.push(0x70);
-  out.push(0); // background index
-  out.push(0); // pixel aspect ratio
+  const q0 = quantizeUniformRGBA(frames[0].data, 256);
+  const gctSizePow = Math.round(Math.log2(q0.tableSize));
+  const packed = (1<<7) | (7<<4) | (0<<3) | ((gctSizePow-1) & 7);
+  out.push(packed);
+  out.push(0); out.push(0);
+  writeBytes(out, q0.palette);
 
   // Netscape loop forever
   writeBytes(out, [0x21,0xFF,0x0B]);
@@ -2309,31 +1713,19 @@ function buildGIF(frames, w, h, fps){
   writeBytes(out, [0x03,0x01,0x00,0x00,0x00]);
 
   for(let fi=0; fi<frames.length; fi++){
-    const q = quantizeUniformRGBA(frames[fi].data, 256);
-    const tableSize = q.tableSize || 256;
-    const pow = Math.max(1, Math.round(Math.log2(tableSize))); // 1..8
+    const q = (fi===0) ? q0 : quantizeUniformRGBA(frames[fi].data, 256);
 
-    // Graphics Control Extension
     writeBytes(out, [0x21,0xF9,0x04]);
-    out.push((2<<2) | 0); // disposal method 2, no transparency
+    out.push((2<<2) | 0);
     writeU16(out, delayCs);
-    out.push(0); // transparent index (unused)
-    out.push(0); // terminator
+    out.push(0); out.push(0);
 
-    // Image Descriptor
     writeBytes(out, [0x2C]);
     writeU16(out, 0); writeU16(out, 0);
     writeU16(out, w); writeU16(out, h);
+    out.push(0x00);
 
-    // Local Color Table flag = 1, size = 2^(N+1) => bits = (pow-1)
-    const lctPacked = 0x80 | ((pow-1) & 7);
-    out.push(lctPacked);
-
-    // Local color table (3 * tableSize bytes)
-    writeBytes(out, q.palette);
-
-    // Image Data
-    const minCodeSize = Math.max(2, pow);
+    const minCodeSize = Math.max(2, gctSizePow);
     out.push(minCodeSize);
     const lzw = lzwEncode(minCodeSize, q.indexData);
 
@@ -2344,10 +1736,9 @@ function buildGIF(frames, w, h, fps){
       for(let i=0;i<blockSize;i++) out.push(lzw[offset+i]);
       offset += blockSize;
     }
-    out.push(0x00); // block terminator
+    out.push(0x00);
   }
-
-  out.push(0x3B); // trailer
+  out.push(0x3B);
   return new Uint8Array(out);
 }
 
@@ -2364,14 +1755,12 @@ el('exportGif').addEventListener('click', async ()=>{
     const offCtx = off.getContext('2d');
 
     const baseAngle = angle || 0;
-    // Force a perfect 360° rotation over the export duration for seamless looping.
-    const dir = (Number(el('speed').value) >= 0) ? 1 : -1;
-    const fullTurn = dir * Math.PI * 2;
+    const speedRad = (Number(el('speed').value) * Math.PI/180);
 
     const frameData = [];
     for(let i=0;i<framesCount;i++){
-      const t = i / framesCount; // [0,1)
-      const a = baseAngle + fullTurn * t;
+      const t = i / framesCount;
+      const a = baseAngle + speedRad * (t * seconds);
       draw(a);
       offCtx.clearRect(0,0,W,H);
       offCtx.drawImage(canvas, 0,0, W,H);
@@ -2381,10 +1770,6 @@ el('exportGif').addEventListener('click', async ()=>{
     }
 
     const gifBytes = buildGIF(frameData, W, H, fps);
-    // Sanity check: GIF header should start with 'GIF'
-    if(!(gifBytes && gifBytes.length > 6 && gifBytes[0]===71 && gifBytes[1]===73 && gifBytes[2]===70)){
-      throw new Error('GIF encoder produced invalid output.');
-    }
     const blob = new Blob([gifBytes], {type:"image/gif"});
     const url = URL.createObjectURL(blob);
 
@@ -2434,9 +1819,7 @@ async function exportVideo(desiredExt){
   rec.ondataavailable = (e)=>{ if(e.data && e.data.size) chunks.push(e.data); };
 
   const baseAngle = angle || 0;
-  // Force a perfect 360° rotation over the export duration for seamless looping.
-  const dir = (Number(el('speed').value) >= 0) ? 1 : -1;
-  const fullTurn = dir * Math.PI * 2;
+  const speedRad = (Number(el('speed').value) * Math.PI/180);
 
   const wasAnimating = !!el('animate').checked;
   if(wasAnimating) stopAnim();
@@ -2444,8 +1827,8 @@ async function exportVideo(desiredExt){
   rec.start();
   try{
     for(let i=0;i<framesCount;i++){
-      const t = i / framesCount; // [0,1)
-      const a = baseAngle + fullTurn * t;
+      const t = i / framesCount;
+      const a = baseAngle + speedRad * (t * seconds);
       draw(a);
       statusEl.textContent = `Recording ${actualExt.toUpperCase()}… ${i+1}/${framesCount}`;
       await new Promise(r=>setTimeout(r, Math.round(1000/fps)));
@@ -2478,8 +1861,6 @@ loadHistory();
 renderHistory();
 setAccentFromHex(el('color').value);
 
-el('color2Hex').textContent = (el('color2').value||'#6ad9ff').toLowerCase();
-
 el('saveHistory').addEventListener('click', ()=>{
   // ensure we're capturing current look
   if(!el('animate').checked) draw(angle);
@@ -2496,8 +1877,6 @@ el('clearHistory').addEventListener('click', ()=>{
 populateFontSelect();
 buildInscriptionsUI();
 buildRingTextList(true);
-buildLayerSystemUI();
-buildRingRolesUI(true);
 draw(0);
 
 // listeners after init
@@ -2516,30 +1895,6 @@ el('fontUpload').addEventListener('change', async (e)=>{
   }
   e.target.value = '';
 });
-
-// Advanced options toggle (left: ring role + layer system, right: per-ring roles)
-(function(){
-  const btn = document.getElementById('advancedToggleBtn');
-  const badge = document.getElementById('advancedBadge');
-  const leftPanel = document.getElementById('advancedPanel');
-  const rightPanel = document.getElementById('advancedRingRoles');
-
-  if(!btn || !badge || !leftPanel) return;
-
-  let open = false;
-  const apply = ()=>{
-    leftPanel.style.display = open ? "block" : "none";
-    if(rightPanel) rightPanel.style.display = open ? "block" : "none";
-    badge.textContent = open ? "visible" : "hidden";
-  };
-
-  btn.addEventListener('click', ()=>{
-    open = !open;
-    apply();
-  });
-
-  apply();
-})();
 </script>
 </body>
 </html>
