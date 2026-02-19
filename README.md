@@ -121,19 +121,6 @@ This project is designed for static hosting:
 
 ---
 
-## 🧪 Planned Ideas
-
-* Preset saving / shareable URLs
-* SVG export
-* Layer toggles
-* Symbol packs
-* Batch generation
-* Animation styles
-* Community gallery
-* PWA install
-
----
-
 ## ⚠️ Browser Notes
 
 * MP4 export depends on browser MediaRecorder support
