@@ -509,6 +509,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
         <button id="randomSeed" type="button">Random Seed</button>
         <button id="toggleBg" type="button">Invert BG</button>
         <button id="exportPng" type="button">Export PNG</button>
+        <button id="exportPngTransparent" type="button">Export PNG (Transparent)</button>
         <button id="exportGif" type="button">Export GIF</button>
         <button id="exportMp4" type="button">Export MP4</button>
       </div>
@@ -683,6 +684,7 @@ const statusEl = el('status');
 
 let ACTIVE_STROKE_STYLE = "solid";
 let ACTIVE_BG = "#000000";
+let TRANSPARENT_BG = false; // used for transparent PNG export
 
 /* ---------------- Layer groups ---------------- */
 const LAYER_KEYS = ["structure","ornament","glyphs","connectors","text","center"];
@@ -995,6 +997,78 @@ function bindPair(rangeId, numId, onChange){
 }
 
 /* ---------------- Fonts ---------------- */
+const FONT_DB_NAME = "sigilFontLibrary_v1";
+const FONT_STORE = "fonts";
+let SAVED_FONTS = []; // {id, name, family, css}
+
+/** Open IndexedDB (promisified) */
+function openFontDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(FONT_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains(FONT_STORE)){
+        db.createObjectStore(FONT_STORE, { keyPath: "id" });
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error || new Error("IndexedDB open failed"));
+  });
+}
+async function dbGetAllFonts(){
+  const db = await openFontDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(FONT_STORE, "readonly");
+    const store = tx.objectStore(FONT_STORE);
+    const req = store.getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error || new Error("IndexedDB getAll failed"));
+  });
+}
+async function dbPutFont(rec){
+  const db = await openFontDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(FONT_STORE, "readwrite");
+    const store = tx.objectStore(FONT_STORE);
+    const req = store.put(rec);
+    req.onsuccess = ()=>resolve(true);
+    req.onerror = ()=>reject(req.error || new Error("IndexedDB put failed"));
+  });
+}
+
+/** Create a deterministic-ish id for storage */
+function makeFontId(fileName, byteLen){
+  const base = `${fileName}::${byteLen}::${Date.now()}::${Math.random()}`;
+  let h = 2166136261;
+  for(let i=0;i<base.length;i++){
+    h ^= base.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return "f_" + (h>>>0).toString(16);
+}
+
+async function loadSavedFontsIntoDocument(){
+  SAVED_FONTS = [];
+  if(!("indexedDB" in window)) return;
+
+  let rows = [];
+  try{ rows = await dbGetAllFonts(); }catch(_e){ rows = []; }
+
+  for(const r of rows){
+    try{
+      if(!r || !r.data || !r.id) continue;
+      const family = r.family || `SavedFont_${r.id}`;
+      const ff = new FontFace(family, r.data, { style: "normal", weight: "400" });
+      await ff.load();
+      document.fonts.add(ff);
+
+      const css = `"${family}", ${BUILTIN_FONTS[0].css}`;
+      SAVED_FONTS.push({ id:r.id, name:r.name || "Saved font", family, css });
+    }catch(_e){
+      // ignore bad entries
+    }
+  }
+}
 const BUILTIN_FONTS = [
   {name:"Monospace (default)", css:'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'},
   {name:"Serif", css:'ui-serif, Georgia, "Times New Roman", Times, serif'},
@@ -1010,12 +1084,32 @@ function populateFontSelect(){
   const sel = el('fontSelect');
   const current = sel.value;
   sel.innerHTML = "";
+
+  // Built-ins
   for(const f of BUILTIN_FONTS){
     const op = document.createElement('option');
     op.value = f.css;
     op.textContent = f.name;
     sel.appendChild(op);
   }
+
+  // Saved fonts (from local library)
+  if(Array.isArray(SAVED_FONTS) && SAVED_FONTS.length){
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = "──────── Saved Fonts ────────";
+    sep.value = "__sep_saved";
+    sel.appendChild(sep);
+
+    for(const sf of SAVED_FONTS){
+      const op = document.createElement('option');
+      op.value = sf.css;
+      op.textContent = `Saved: ${sf.name}`;
+      sel.appendChild(op);
+    }
+  }
+
+  // Keep selection if possible
   if([...sel.options].some(o=>o.value===current)) sel.value = current;
 }
 function currentFontCSS(){
@@ -1030,43 +1124,54 @@ async function loadCustomFont(file){
             : (ext === 'woff') ? 'woff'
             : (ext === 'woff2') ? 'woff2'
             : '';
-  const fontName = `CustomFont_${++customFontCount}_${file.name.replace(/[^a-z0-9]+/ig,'_')}`;
 
-  let url = null;
-  try{
-    url = URL.createObjectURL(file);
-    const src = fmt ? `url(${url}) format("${fmt}")` : `url(${url})`;
-    const ff = new FontFace(fontName, src, { style: "normal", weight: "400" });
-    await ff.load();
-    document.fonts.add(ff);
-  }catch(e1){
+  const buf = await file.arrayBuffer();
+
+  // Persist locally (like snapshots) using IndexedDB
+  let fontId = null;
+  if("indexedDB" in window){
     try{
-      const buf = await file.arrayBuffer();
-      const ff2 = new FontFace(fontName, buf, { style: "normal", weight: "400" });
-      await ff2.load();
-      document.fonts.add(ff2);
-    }catch(e2){
-      const msg = (e2 && e2.message) ? e2.message : (e1 && e1.message) ? e1.message : "Unknown font load error";
-      throw new Error(`Font rejected by browser. Try a different font. Details: ${msg}`);
+      fontId = makeFontId(file.name, buf.byteLength);
+      const family = `SavedFont_${fontId}`;
+      await dbPutFont({ id: fontId, name: file.name, family, fmt, data: buf });
+    }catch(_e){
+      // If IndexedDB fails, we still load it for this session.
+      fontId = null;
     }
-  }finally{
-    if(url) URL.revokeObjectURL(url);
   }
 
+  // Load into document fonts (from buffer)
+  const familyName = fontId ? `SavedFont_${fontId}` : `CustomFont_${++customFontCount}_${file.name.replace(/[^a-z0-9]+/ig,'_')}`;
+  try{
+    const ff = new FontFace(familyName, buf, { style: "normal", weight: "400" });
+    await ff.load();
+    document.fonts.add(ff);
+  }catch(e){
+    const msg = (e && e.message) ? e.message : "Unknown font load error";
+    throw new Error(`Font rejected by browser. Try a different font. Details: ${msg}`);
+  }
+
+  // Update in-memory saved fonts list for immediate use
+  const css = `"${familyName}", ${BUILTIN_FONTS[0].css}`;
+  if(fontId){
+    SAVED_FONTS = (SAVED_FONTS || []).filter(x=>x.id !== fontId);
+    SAVED_FONTS.unshift({ id: fontId, name: file.name, family: familyName, css });
+  }
+
+  // Rebuild select + select the newly added font
+  populateFontSelect();
   const sel = el('fontSelect');
-  const op = document.createElement('option');
-  op.value = `"${fontName}", ${BUILTIN_FONTS[0].css}`;
-  op.textContent = `Custom: ${file.name}`;
-  sel.insertBefore(op, sel.children[1] || null);
-  sel.value = op.value;
+  sel.value = css;
 }
 
 /* ---------------- Drawing primitives ---------------- */
 function clear(bg){
   ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = bg;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  if(bg != null){
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
 }
 function setGlow(color, strength){
   const blur = strength<=0 ? 0 : (1 + strength * 0.40);
@@ -1098,7 +1203,16 @@ function stroke(pathFn, width, strokeStyle, alpha=1){
     ctx.lineJoin = "round";
     ctx.globalAlpha = alpha;
     ctx.lineWidth = Math.max(0.6, width*0.55);
-    ctx.strokeStyle = ACTIVE_BG;
+
+    if(TRANSPARENT_BG){
+      // carve by erasing pixels (works on transparent exports)
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+    }else{
+      // carve with background color (keeps preview solid)
+      ctx.strokeStyle = ACTIVE_BG;
+    }
+
     ctx.beginPath();
     pathFn();
     ctx.stroke();
@@ -1156,8 +1270,16 @@ function chords(r, count, step, col, w, a=1, rot=0){
 
   drawOnce(col, w);
   if(st === "double"){
-    // carve
-    drawOnce(ACTIVE_BG, Math.max(0.6, w*0.55));
+    if(TRANSPARENT_BG){
+      // carve by erasing
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-out";
+      drawOnce("rgba(0,0,0,1)", Math.max(0.6, w*0.55));
+      ctx.restore();
+    }else{
+      // carve with background color
+      drawOnce(ACTIVE_BG, Math.max(0.6, w*0.55));
+    }
   }
 }
 
@@ -1252,7 +1374,14 @@ function ringRunes(rng, r, count, col, w, alpha, rot=0){
   };
   drawOnce(col, w);
   if(st === "double"){
-    drawOnce(ACTIVE_BG, Math.max(0.6, w*0.55));
+    if(TRANSPARENT_BG){
+      ctx.save();
+      ctx.globalCompositeOperation = "destination-out";
+      drawOnce("rgba(0,0,0,1)", Math.max(0.6, w*0.55));
+      ctx.restore();
+    }else{
+      drawOnce(ACTIVE_BG, Math.max(0.6, w*0.55));
+    }
   }
 }
 
@@ -1995,7 +2124,7 @@ el('selectNone').addEventListener('click', ()=>{
 });
 
 /* ---------------- Main draw ---------------- */
-function draw(rotAngle=0){
+function draw(rotAngle=0, opts=null){
   const seed = (Number(el('seed').value) >>> 0);
   const rng = mulberry32(seed);
 
@@ -2023,8 +2152,9 @@ function draw(rotAngle=0){
   const accent = hexToRgb(accentHex);
   const colSub  = rgba(accent, 0.92);
 
-  const bg = darkBg ? "#000000" : "#f6f7fb";
-  ACTIVE_BG = bg;
+  TRANSPARENT_BG = !!(opts && opts.transparent);
+  const bg = TRANSPARENT_BG ? null : (darkBg ? "#000000" : "#f6f7fb");
+  ACTIVE_BG = (bg==null) ? "rgba(0,0,0,0)" : bg;
   ACTIVE_STROKE_STYLE = (el("strokeStyle")?.value || "solid");
   CURRENT_LAYER = { on:true, colorSource:"primary", strokeOverride:"inherit", opacity:1 };
   clear(bg);
@@ -2209,6 +2339,29 @@ el('exportPng').addEventListener('click', ()=>{
   a.click();
   try{ pushHistory(currentSnapshot()); }catch(_e){}
 });
+
+el('exportPngTransparent').addEventListener('click', ()=>{
+  // Render once with transparent background (respects layer opacities), export, then restore preview.
+  const wasAnimating = !!el('animate').checked;
+  if(wasAnimating){ el('animate').checked = false; stopAnim(); }
+
+  statusEl.textContent = "Exporting transparent PNG…";
+  draw(angle, {transparent:true});
+
+  const a = document.createElement('a');
+  a.download = `sigil_${el('seed').value}_transparent.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+
+  // restore normal preview
+  draw(angle, {transparent:false});
+  statusEl.textContent = "Transparent PNG exported.";
+
+  if(wasAnimating){ el('animate').checked = true; startAnim(); }
+
+  try{ pushHistory(currentSnapshot()); }catch(_e){}
+});
+
 
 /* ---------------- GIF encoder (small) ---------------- */
 function lzwEncode(minCodeSize, indices){
@@ -2507,7 +2660,12 @@ el('clearHistory').addEventListener('click', ()=>{
   statusEl.textContent = "History cleared.";
 });
 
-populateFontSelect();
+/* init fonts (including saved library) */
+(async ()=>{
+  try{ await loadSavedFontsIntoDocument(); }catch(_e){}
+  populateFontSelect();
+})();
+
 buildInscriptionsUI();
 buildRingTextList(true);
 buildLayerSystemUI();
