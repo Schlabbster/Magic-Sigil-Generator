@@ -338,7 +338,16 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
             <option value="10">Concentric squares</option>
             <option value="11">Vesica / lens</option>
             <option value="12">Rosette</option>
-          </select>
+          
+            <option value="13">Solar wheel</option>
+            <option value="14">Celtic weave</option>
+            <option value="15">Petal bloom</option>
+            <option value="16">Hexagram seal</option>
+            <option value="17">Runic lattice</option>
+            <option value="18">Crosshair alchemy</option>
+            <option value="19">Spiral orbit</option>
+            <option value="20">Gate sigil</option>
+</select>
           <div class="badge">shape</div>
         </div>
 
@@ -350,20 +359,20 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
 
         <div class="row">
           <label for="complex">Complexity</label>
-          <input id="complex" type="range" min="1" max="10" step="1" value="6"/>
-          <input id="complexN" type="number" min="1" max="10" step="1" value="6"/>
+          <input id="complex" type="range" min="1" max="20" step="1" value="6"/>
+          <input id="complexN" type="number" min="1" max="20" step="1" value="6"/>
         </div>
 
         <div class="row">
           <label for="interior">Interior Density</label>
-          <input id="interior" type="range" min="0" max="100" step="1" value="25"/>
-          <input id="interiorN" type="number" min="0" max="100" step="1" value="25"/>
+          <input id="interior" type="range" min="0" max="150" step="1" value="25"/>
+          <input id="interiorN" type="number" min="0" max="150" step="1" value="25"/>
         </div>
 
         <div class="row">
           <label for="symmetry">Symmetry</label>
-          <input id="symmetry" type="range" min="3" max="16" step="1" value="8"/>
-          <input id="symmetryN" type="number" min="3" max="16" step="1" value="8"/>
+          <input id="symmetry" type="range" min="3" max="24" step="1" value="8"/>
+          <input id="symmetryN" type="number" min="3" max="24" step="1" value="8"/>
         </div>
 
         <div class="row">
@@ -1086,10 +1095,9 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
   const innerR = R - ringGap*1.05;
   const midR   = R - ringGap*1.95;
   const coreR  = Math.max(R*0.15, R - ringGap*(3.2));
-
-  const add = interior/100;
-  const k = Math.max(3, Math.min(16, symmetry));
-  const dense = Math.min(1, (complexity-1)/9);
+  const k = Math.max(3, Math.min(24, Math.floor(symmetry)));
+  const dense = Math.min(1, (complexity-1)/19);
+  const add = (interior/100); // can exceed 1 for extra detail
 
   ring(innerR, lw*0.85, colMain, 0.95);
   ring(coreR*1.55, lw*0.75, colSub, 0.75);
@@ -1183,7 +1191,151 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
     }
     ctx.restore();
     if(add>0.55) chords(innerR*0.90, n, 5, colSub, lw*0.42, 0.45, rot);
-  } else {
+  
+} else if(tpl===13){
+  // Solar wheel: spokes + rim nodes
+  const n = Math.max(6, Math.min(24, k + Math.floor(dense*10)));
+  ring(innerR*0.86, lw*0.75, colMain, 0.9);
+  orbs(innerR*0.86, n, lw*(2.0 + 1.0*dense), colSub, lw*0.5, 0.65, rot, add>0.65);
+  ctx.save();
+  ctx.globalAlpha = 0.75;
+  ctx.strokeStyle = colMain;
+  ctx.lineWidth = lw*0.6;
+  for(let i=0;i<n;i++){
+    const a = rot + i*(Math.PI*2/n);
+    ctx.beginPath();
+    line(Math.cos(a)*coreR*0.45, Math.sin(a)*coreR*0.45, Math.cos(a)*innerR*0.86, Math.sin(a)*innerR*0.86);
+    ctx.stroke();
+    if(add>0.85){
+      ctx.beginPath();
+      line(Math.cos(a)*coreR*0.20, Math.sin(a)*coreR*0.20, Math.cos(a)*coreR*0.45, Math.sin(a)*coreR*0.45);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  if(add>0.45) chords(innerR*0.86, n, 3, colSub, lw*0.45, 0.45, rot+0.08);
+
+} else if(tpl===14){
+  // Celtic weave: alternating chords + inner knot ring
+  const n = Math.max(8, Math.min(24, k + 4));
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  ring(innerR*0.66, lw*0.65, colSub, 0.75);
+
+  const stepA = 2 + Math.floor(dense*3);
+  const stepB = 3 + Math.floor(dense*4);
+  chords(innerR*0.90, n, stepA, colSub, lw*0.50, 0.55, rot);
+  chords(innerR*0.90, n, stepB, colMain, lw*0.40, 0.50, rot + Math.PI/n);
+
+  if(add>0.55){
+    orbs(innerR*0.66, n, lw*1.9, colMain, lw*0.35, 0.55, rot+0.12, false);
+    chords(innerR*0.66, n, stepA, colSub, lw*0.40, 0.40, rot+0.06);
+  }
+
+} else if(tpl===15){
+  // Petal bloom: flower of circles
+  const n = Math.max(6, Math.min(20, k + Math.floor(dense*6)));
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  ctx.save();
+  ctx.globalAlpha = 0.70;
+  ctx.strokeStyle = colMain;
+  ctx.lineWidth = lw*0.55;
+  const pr = innerR*0.30 + dense*innerR*0.10;
+  for(let i=0;i<n;i++){
+    const a = rot + i*(Math.PI*2/n);
+    const x = Math.cos(a)*innerR*0.34;
+    const y = Math.sin(a)*innerR*0.34;
+    ctx.beginPath();
+    circle(x,y, pr);
+    ctx.stroke();
+    if(add>0.8){
+      ctx.beginPath();
+      circle(x,y, pr*0.55);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  if(add>0.5) orbs(innerR*0.90, n, lw*(2.2+dense), colSub, lw*0.45, 0.55, rot, false);
+
+} else if(tpl===16){
+  // Hexagram seal: double triangle + orbit nodes
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.78, 3, rot), lw*0.9, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.78, 3, rot+Math.PI), lw*0.9, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.52, 6, rot+Math.PI/6), lw*0.6, colSub, 0.75);
+  const n = Math.max(6, Math.min(18, k));
+  if(add>0.25) orbs(innerR*0.78, n, lw*2.4, colSub, lw*0.45, 0.60, rot, add>0.95);
+  if(add>0.65) chords(innerR*0.78, n, 2, colSub, lw*0.40, 0.45, rot+0.12);
+
+} else if(tpl===17){
+  // Runic lattice: polygon + runes + crossing chords
+  const n = Math.max(6, Math.min(24, k + 2));
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.76, n, rot), lw*0.65, colSub, 0.75);
+  if(add>0.25){
+    const rc = innerR*0.82;
+    const count = Math.max(28, Math.floor(n*4 + complexity*4));
+    ringRunes(rng, rc, count, colMain, lw*0.45, 0.55, rot);
+  }
+  chords(innerR*0.90, n, 3, colSub, lw*0.45, 0.45, rot);
+  if(add>0.65) chords(innerR*0.90, n, 5, colMain, lw*0.35, 0.35, rot+0.18);
+
+} else if(tpl===18){
+  // Crosshair alchemy: axes + triangles + inner target
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  ctx.save();
+  ctx.globalAlpha = 0.75;
+  ctx.strokeStyle = colMain;
+  ctx.lineWidth = lw*0.75;
+  ctx.beginPath();
+  line(-innerR*0.90, 0, innerR*0.90, 0);
+  line(0, -innerR*0.90, 0, innerR*0.90);
+  ctx.stroke();
+  ctx.restore();
+
+  const triR = innerR*(0.55 + 0.08*dense);
+  stroke(()=>poly(0,0, triR, 3, rot), lw*0.65, colSub, 0.70);
+  if(add>0.55) stroke(()=>poly(0,0, triR*0.72, 3, rot+Math.PI/3), lw*0.55, colSub, 0.55);
+
+  const n = Math.max(4, Math.min(24, k));
+  if(add>0.25) orbs(innerR*0.90, n, lw*2.0, colSub, lw*0.40, 0.55, rot+0.04, false);
+
+} else if(tpl===19){
+  // Spiral orbit: layered rotating stars
+  const n = Math.max(7, Math.min(18, k + 3));
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  const layers = 2 + Math.floor(dense*3) + (add>1.0 ? 1 : 0);
+  for(let i=0;i<layers;i++){
+    const t = i/Math.max(1,layers-1);
+    const rr = innerR*(0.82 - t*0.28);
+    const pts = Math.max(6, Math.min(16, n - i));
+    stroke(()=>star(0,0, rr, rr*(0.28 + 0.08*dense), pts, rot + i*0.45), lw*(0.65 - t*0.18), (i%2?colSub:colMain), 0.70 - t*0.18);
+  }
+  if(add>0.55) chords(innerR*0.90, n, 4, colSub, lw*0.40, 0.40, rot+0.12);
+
+} else if(tpl===20){
+  // Gate sigil: nested squares + portals
+  ring(innerR*0.90, lw*0.75, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.78, 4, rot), lw*0.95, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.58, 4, rot+Math.PI/4), lw*0.70, colSub, 0.75);
+
+  ctx.save();
+  ctx.globalAlpha = 0.70;
+  ctx.strokeStyle = colSub;
+  ctx.lineWidth = lw*0.55;
+  const rr = innerR*0.40;
+  for(let i=0;i<4;i++){
+    const a = rot + i*(Math.PI/2);
+    ctx.save();
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.arc(0, -rr*0.55, rr*0.55, 0, Math.PI);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  if(add>0.45) chords(innerR*0.78, 8 + Math.floor(dense*8), 3, colSub, lw*0.38, 0.38, rot+0.05);
+} else {
     // Complex orbit
     const n = Math.max(7, Math.min(12, k+3));
     ring(innerR*0.78, lw*0.75, colSub, 0.75);
@@ -1471,7 +1623,7 @@ function draw(rotAngle=0){
   ring(R*0.995, strokeW*0.85, colMain, 0.95);
 
   // ring stack
-  const extraRings = (complexity>=7 ? 1 : 0) + (complexity>=9 ? 1 : 0);
+  const extraRings = (complexity>=12 ? 1 : 0) + (complexity>=16 ? 1 : 0);
   const totalRings = Math.min(10, ringsN + extraRings);
   const ringRadii = [];
   for(let i=0;i<totalRings;i++){
@@ -1482,7 +1634,7 @@ function draw(rotAngle=0){
     if(i%2===0) ring(r - ringGap*0.18, strokeW*0.45, colSub, 0.65);
   }
 
-  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 12);
+  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 20);
   const coreR = drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, strokeW, complexity, symmetry, interior);
 
   // central symbol
