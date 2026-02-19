@@ -408,6 +408,16 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
             <option value="18">Crosshair alchemy</option>
             <option value="19">Spiral orbit</option>
             <option value="20">Gate sigil</option>
+
+            <option value="21">Chaos web</option>
+            <option value="22">Fractal ring</option>
+            <option value="23">Tri-weave</option>
+            <option value="24">Radiant mesh</option>
+            <option value="25">Obsidian seal</option>
+            <option value="26">Astral grid</option>
+            <option value="27">Void bloom</option>
+            <option value="28">Sigil nexus</option>
+            <option value="29">Infinite lattice</option>
 </select>
           <div class="badge">shape</div>
         </div>
@@ -420,20 +430,20 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
 
         <div class="row">
           <label for="complex">Complexity</label>
-          <input id="complex" type="range" min="1" max="20" step="1" value="6"/>
-          <input id="complexN" type="number" min="1" max="20" step="1" value="6"/>
+          <input id="complex" type="range" min="1" max="40" step="1" value="6"/>
+          <input id="complexN" type="number" min="1" max="40" step="1" value="6"/>
         </div>
 
         <div class="row">
           <label for="interior">Interior Density</label>
-          <input id="interior" type="range" min="0" max="150" step="1" value="25"/>
-          <input id="interiorN" type="number" min="0" max="150" step="1" value="25"/>
+          <input id="interior" type="range" min="0" max="300" step="1" value="25"/>
+          <input id="interiorN" type="number" min="0" max="300" step="1" value="25"/>
         </div>
 
         <div class="row">
           <label for="symmetry">Symmetry</label>
-          <input id="symmetry" type="range" min="3" max="24" step="1" value="8"/>
-          <input id="symmetryN" type="number" min="3" max="24" step="1" value="8"/>
+          <input id="symmetry" type="range" min="3" max="48" step="1" value="8"/>
+          <input id="symmetryN" type="number" min="3" max="48" step="1" value="8"/>
         </div>
 
         
@@ -729,7 +739,7 @@ function applyLayer(roleKey, fn){
   const prevStroke = ACTIVE_STROKE_STYLE;
   CURRENT_LAYER = {
     on: cfg.on !== false,
-    colorSource: (cfg.colorSource === "accent") ? "accent" : "primary",
+    colorSource: (cfg.colorSource === "accent") ? "accent" : (cfg.colorSource === "role" ? "role" : "primary"),
     strokeOverride: (cfg.strokeOverride || "inherit"),
     opacity: clamp01(cfg.opacity)
   };
@@ -745,8 +755,13 @@ function applyLayer(roleKey, fn){
   }
 }
 
-function layerColor(colMain, colSub){
-  return (CURRENT_LAYER.colorSource === "accent") ? colSub : colMain;
+function layerColor(colMain, colSub, roleHex){
+  if(CURRENT_LAYER.colorSource === "accent") return colSub;
+  if(CURRENT_LAYER.colorSource === "role"){
+    const hx = (roleHex||"").toString().trim();
+    return hx ? hx : colMain;
+  }
+  return colMain;
 }
 function applyStrokeStyle(width){
   const st = (ACTIVE_STROKE_STYLE || "solid");
@@ -840,6 +855,7 @@ function currentSnapshot(){
       darkBg: !!darkBg,
       ringTextState: ringTextState,
       ringRoleState: ringRoleState,
+      ringColorState: ringColorState,
       layerState: layerState,
       inscriptionState: inscriptionState,
       centerState: centerState,
@@ -890,6 +906,7 @@ async function restoreSnapshot(item){
   darkBg = !!p.darkBg;
   ringTextState = p.ringTextState || {};
   ringRoleState = p.ringRoleState || {};
+  ringColorState = p.ringColorState || {};
   layerState = p.layerState || layerState;
   inscriptionState = p.inscriptionState || { rotateTarget:"whole", defaultText:"" };
   centerState = p.centerState || { mode:"none", text:"", size:110 };
@@ -1452,9 +1469,9 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
   const innerR = R - ringGap*1.05;
   const midR   = R - ringGap*1.95;
   const coreR  = Math.max(R*0.15, R - ringGap*(3.2));
-  const k = Math.max(3, Math.min(24, Math.floor(symmetry)));
-  const dense = Math.min(1, (complexity-1)/19);
-  const add = (interior/100); // can exceed 1 for extra detail
+  const k = Math.max(3, Math.min(48, Math.floor(symmetry)));
+  const dense = Math.min(1, (complexity-1)/39);
+  const add = Math.min(3, interior/100); // can exceed 1 for extra detail
 
   ring(innerR, lw*0.85, colMain, 0.95);
   ring(coreR*1.55, lw*0.75, colSub, 0.75);
@@ -1551,7 +1568,7 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
   
 } else if(tpl===13){
   // Solar wheel: spokes + rim nodes
-  const n = Math.max(6, Math.min(24, k + Math.floor(dense*10)));
+  const n = Math.max(6, Math.min(48, k + Math.floor(dense*10)));
   ring(innerR*0.86, lw*0.75, colMain, 0.9);
   orbs(innerR*0.86, n, lw*(2.0 + 1.0*dense), colSub, lw*0.5, 0.65, rot, add>0.65);
   ctx.save();
@@ -1574,7 +1591,7 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
 
 } else if(tpl===14){
   // Celtic weave: alternating chords + inner knot ring
-  const n = Math.max(8, Math.min(24, k + 4));
+  const n = Math.max(8, Math.min(48, k + 4));
   ring(innerR*0.90, lw*0.75, colMain, 0.9);
   ring(innerR*0.66, lw*0.65, colSub, 0.75);
 
@@ -1625,7 +1642,7 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
 
 } else if(tpl===17){
   // Runic lattice: polygon + runes + crossing chords
-  const n = Math.max(6, Math.min(24, k + 2));
+  const n = Math.max(6, Math.min(48, k + 2));
   ring(innerR*0.90, lw*0.75, colMain, 0.9);
   stroke(()=>poly(0,0, innerR*0.76, n, rot), lw*0.65, colSub, 0.75);
   if(add>0.25){
@@ -1653,7 +1670,7 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
   stroke(()=>poly(0,0, triR, 3, rot), lw*0.65, colSub, 0.70);
   if(add>0.55) stroke(()=>poly(0,0, triR*0.72, 3, rot+Math.PI/3), lw*0.55, colSub, 0.55);
 
-  const n = Math.max(4, Math.min(24, k));
+  const n = Math.max(4, Math.min(48, k));
   if(add>0.25) orbs(innerR*0.90, n, lw*2.0, colSub, lw*0.40, 0.55, rot+0.04, false);
 
 } else if(tpl===19){
@@ -1900,7 +1917,8 @@ function buildLayerSystemUI(){
     const l1 = document.createElement('label'); l1.textContent = "Color";
     const s1 = makeMiniSelect([
       {value:"primary", label:"Primary"},
-      {value:"accent", label:"Accent"}
+      {value:"accent", label:"Accent"},
+      {value:"role", label:"Role Color"}
     ], cfg.colorSource || "primary");
     s1.addEventListener('input', ()=>{ cfg.colorSource = s1.value; onParamsChanged(); });
     const b1 = document.createElement('div'); b1.className = "badge"; b1.textContent = "source";
@@ -1943,7 +1961,8 @@ function buildLayerSystemUI(){
 }
 
 /* ---------------- Ring roles UI ---------------- */
-let ringRoleState = {}; // key -> role key
+let ringRoleState = {};
+let ringColorState = {}; // per-ring color override // key -> role key
 
 function ensureRingRoleDefaults(ringsN){
   const items = ringKeyLabelList(ringsN);
@@ -1994,10 +2013,21 @@ function buildRingRolesUI(force=false){
       <option value="center">Center</option>`;
     sel.value = normalizeRole(ringRoleState[it.key] || "structure");
     sel.addEventListener('input', ()=>{ ringRoleState[it.key] = normalizeRole(sel.value); onParamsChanged(); });
+
+    // Per-ring color override
+    const colorInput = document.createElement('input');
+    colorInput.type = "color";
+    colorInput.value = ringColorState[it.key] || "#ffffff";
+    colorInput.style.marginLeft = "6px";
+    colorInput.addEventListener('input', ()=>{
+      ringColorState[it.key] = colorInput.value;
+      onParamsChanged();
+    });
+
     const badge = document.createElement('div');
     badge.className = "badge";
     badge.textContent = "role";
-    row.appendChild(l); row.appendChild(sel); row.appendChild(badge);
+    row.appendChild(l); row.appendChild(sel); row.appendChild(colorInput); row.appendChild(badge);
     block.appendChild(row);
   }
 
@@ -2180,7 +2210,8 @@ function draw(rotAngle=0, opts=null){
   ensureRingRoleDefaults(ringsN);
   const outerRole = normalizeRole(ringRoleState.outer || "structure");
   applyLayer(outerRole, ()=>{
-    const c = layerColor(colMain, colSub);
+    const roleHex = ringColorState["outer"];
+    const c = layerColor(colMain, colSub, roleHex);
     ring(R*1.02, strokeW*1.6, c, 0.90);
     ring(R*0.995, strokeW*0.85, c, 0.95);
   });
@@ -2197,13 +2228,14 @@ function draw(rotAngle=0, opts=null){
     const key = `inner:${Math.min(i+1, ringsN)}`;
     const role = normalizeRole(ringRoleState[key] || "structure");
     applyLayer(role, ()=>{
-      const c = layerColor(colMain, colSub);
+      const roleHex = ringColorState[key];
+      const c = layerColor(colMain, colSub, roleHex);
       ring(r, strokeW*(i===0?1.1:0.8), c, 0.95);
       if(i%2===0) ring(r - ringGap*0.18, strokeW*0.45, c, 0.65);
     });
   }
 
-  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 20);
+  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 29);
   // template core is routed as Structure by default (still affected by Structure layer settings)
   let coreR = R*0.22;
   applyLayer("structure", ()=>{
@@ -2248,7 +2280,8 @@ function draw(rotAngle=0, opts=null){
     if(ringTextMode === "none") return;
     const role = normalizeRole(ringRoleState[key] || "text");
     applyLayer(role, ()=>{
-      const c = layerColor(colMain, colSub);
+      const roleHex = ringColorState[key];
+      const c = layerColor(colMain, colSub, roleHex);
       if(ringTextMode === "runes"){
         const count = Math.max(24, Math.floor(symmetry*4 + complexity*3));
         ringRunes(rng, textR, count, c, strokeW*0.55, 0.55, textRot);
