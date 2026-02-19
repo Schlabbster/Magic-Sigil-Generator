@@ -1,6 +1,6 @@
 # ✶ Procedural Sigil Generator
 
-A browser-based **procedural sigil / magic seal generator** that creates clean geometric symbols, arcane designs, animated sigils, and exportable artwork — all fully client-side.
+A browser-based **procedural sigil / magic seal generator** that creates clean geometric symbols, arcane designs, animated sigils, and exportable artwork - all fully client-side.
 
 No installation, or anything.
 Just open the page and generate.
@@ -246,7 +246,7 @@ Designed for static hosting:
 
 ## 📜 License
 
-MIT — use freely, modify freely, attribution appreciated.
+MIT - use freely, modify freely, attribution appreciated.
 
 ---
 
