@@ -1,0 +1,1900 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Procedural Sigil Generator</title>
+<style>
+*{box-sizing:border-box;}
+:root{
+  --bg:#07080c;
+  --panel: rgba(255,255,255,.045);
+  --border: rgba(255,255,255,.12);
+
+  --text:#eef2ff;
+  --muted:#9aa6c7;
+
+  --accent:#d9b35a;
+  --accentSoft: rgba(217,179,90,.18);
+
+  /* background glow follows sigil color */
+  --bgGlow1: rgba(217,179,90,.12);
+  --bgGlow2: rgba(90,180,217,.08);
+
+  --radius:18px;
+
+  --shadow-sm: 0 6px 18px rgba(0,0,0,.35);
+  --shadow: 0 18px 48px rgba(0,0,0,.55);
+  --shadow-lg: 0 30px 80px rgba(0,0,0,.55);
+
+  --ease: cubic-bezier(.22,.8,.22,1);
+}
+
+html,body{height:100%; margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+body{
+  background: var(--bg);
+  color:var(--text);
+  padding:10px;
+  overflow:auto;
+  position:relative;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(1200px 800px at 25% 15%, var(--bgGlow1), transparent 60%),
+    radial-gradient(1000px 700px at 70% 80%, var(--bgGlow2), transparent 55%);
+  opacity:1;
+  transition: background .35s var(--ease);
+  will-change: background;
+}
+.wrap{
+  width:100%;
+  display:grid;
+  grid-template-columns: clamp(320px, 26vw, 460px) minmax(420px, 1fr) clamp(320px, 26vw, 460px);
+  gap:18px;
+  align-items:start;
+}
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  min-width:0;
+  overflow:hidden;
+}
+.panel{padding:16px;}
+h1{margin:0 0 6px 0; font-size:18px; letter-spacing:.2px;}
+p{margin:0 0 14px 0; color:var(--muted); font-size:13px; line-height:1.35;}
+.row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:10px 0;
+  flex-wrap:nowrap;
+}
+.row.wrap{flex-wrap:wrap;}
+label{flex:1; min-width:120px; font-size:13px;}
+input[type="range"]{flex:1.25; min-width:160px;}
+input[type="number"]{width:92px;}
+select, input[type="number"], input[type="text"]{
+  background:#0c0f18;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:10px;
+  padding:8px;
+  font-size:13px;
+  max-width:100%;
+}
+select{min-width:160px;}
+input[type="text"]{flex:2; min-width:220px;}
+input[type="checkbox"]{transform: scale(1.15);}
+input[type="color"]{width:64px; height:36px; padding:0; border:none; background:transparent;}
+.badge{font-size:12px; color:var(--muted); white-space:nowrap;}
+.mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
+.btns{
+  display:flex; flex-wrap:wrap; gap:10px;
+  padding:0 16px 16px;
+}
+.btns button{
+  flex: 1 1 140px;
+  min-width: 120px;
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius: 10px;
+  padding:8px 10px;
+  cursor:pointer;
+  font-weight:650;
+  font-size:12px;
+  transition: transform .08s ease, filter .12s ease;
+}
+.btns button:hover{filter:brightness(1.08);}
+.btns button:active{transform: translateY(1px);}
+.foot{padding:0 16px 16px; color:var(--muted); font-size:12px; line-height:1.35;}
+
+/* Side panels */
+.sideCard{height: calc(100vh - 20px);}
+.sideCard .panel{
+  max-height: calc(100vh - 20px);
+  overflow:auto;
+  scrollbar-gutter: stable;
+}
+.sideCard .panel::-webkit-scrollbar{ width: 10px; }
+.sideCard .panel::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.14);
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,0);
+  background-clip: padding-box;
+}
+.sideCard .panel::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius: 999px; }
+
+/* Center canvas card */
+.canvasCard{
+  padding:14px;
+  height: calc(100vh - 20px);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+}
+.canvasTop{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.sigilStage{
+  width:100%;
+  aspect-ratio: 1 / 1;
+  display:grid;
+  place-items:center;
+  max-height: min(72vh, 920px);
+  max-width: min(100%, 920px);
+  margin: 0 auto;
+}
+canvas{
+  width:100%;
+  height:100%;
+  border-radius: 14px;
+  background:#000;
+  border:1px solid rgba(255,255,255,.09);
+}
+#status{width:100%; padding: 0 6px;}
+
+/* Ring text list */
+.ringTextRow{
+  display:flex; align-items:center; gap:8px;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background: rgba(255,255,255,.03);
+  min-width:0;
+}
+.ringTextRow .k{width:92px; font-size:12px; color:var(--muted);}
+.ringTextRow input[type="text"]{flex:1; min-width:0; width:100%;}
+
+/* Compact block for inscriptions */
+.inscBlock{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:10px;
+  margin: 10px 0 6px 0;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  background: rgba(255,255,255,.02);
+}
+.inscRow{
+  display:grid;
+  grid-template-columns: 120px 1fr auto;
+  gap:10px;
+  align-items:center;
+}
+.inscRow label{min-width:0; margin:0;}
+.inscRow select, .inscRow input[type="text"]{width:100%; min-width:0;}
+.inscRow .badge{justify-self:end;}
+.inscRow.range{grid-template-columns: 120px 1fr 92px;}
+@media (max-width: 1100px){
+  .wrap{grid-template-columns: 1fr;}
+  .sideCard{height:auto;}
+  .sideCard .panel{max-height:none;}
+  .canvasCard{height:auto;}
+  .sigilStage{max-height:78vh;}
+  .inscRow{grid-template-columns: 1fr;}
+  .inscRow .badge{justify-self:start;}
+  .inscRow.range{grid-template-columns: 1fr;}
+  .inscRow.range input[type="number"]{width:100%;}
+}
+
+.inscRow input[type="file"]{width:100%; max-width:100%;}
+
+/* ---------- Accent theming ---------- */
+select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="range"]:focus{
+  outline:none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accentSoft);
+}
+.btns button{
+  transition: transform .15s var(--ease), filter .12s ease, box-shadow .15s var(--ease), border-color .15s var(--ease);
+}
+.btns button:hover{
+  filter:brightness(1.08);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(255,255,255,.22);
+}
+/* export buttons intentionally not accented (user preference) */
+
+/* ---------- History gallery ---------- */
+.historyHead{
+  margin-top:14px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+}
+.historyHead h2{
+  margin:0;
+  font-size:14px;
+  letter-spacing:.2px;
+}
+.historyActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.miniBtn{
+  padding:7px 10px;
+  border-radius:10px;
+  background: rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:650;
+  font-size:12px;
+  transition: transform .12s var(--ease), box-shadow .12s var(--ease), border-color .12s var(--ease);
+}
+.miniBtn:hover{
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(255,255,255,.22);
+}
+.historyGrid{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:10px;
+}
+@media (max-width:1100px){
+  .historyGrid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.historyItem{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  overflow:hidden;
+  background: rgba(255,255,255,.03);
+  cursor:pointer;
+  transition: transform .15s var(--ease), border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.historyItem:hover{
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+.historyThumb{
+  width:100%;
+  aspect-ratio: 1 / 1;
+  display:block;
+  background:#000;
+}
+.historyMeta{
+  padding:8px 9px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  font-size:11px;
+  color: var(--muted);
+}
+.historyMeta .mono{ font-size:11px; }
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- LEFT: core controls -->
+    <div class="card sideCard">
+      <div class="panel">
+        <h1>Procedural Sigil Generator</h1>
+        <p>Clean geometric seals, optional glow. Control rings, complexity, interior density, symmetry, and export PNG/GIF/MP4 (MP4 falls back to WebM if needed).</p>
+
+        <div class="row">
+          <label for="style">Style</label>
+          <select id="style">
+            <option value="seals">Seals (clean geometric)</option>
+            <option value="arcane">Arcane (glow)</option>
+          </select>
+          <div class="badge">look</div>
+        </div>
+
+        <div class="row">
+          <label for="template">Template</label>
+          <select id="template">
+            <option value="-1">Random</option>
+            <option value="0">Square seal</option>
+            <option value="1">Mandala star</option>
+            <option value="2">Triangle concentric</option>
+            <option value="3">Triad nodes</option>
+            <option value="4">Orbital ring</option>
+            <option value="5">Lattice / grid</option>
+            <option value="6">Hex seal</option>
+            <option value="7">Pentagram</option>
+            <option value="8">Complex orbit</option>
+            <option value="9">Compass rose</option>
+            <option value="10">Concentric squares</option>
+            <option value="11">Vesica / lens</option>
+            <option value="12">Rosette</option>
+          </select>
+          <div class="badge">shape</div>
+        </div>
+
+        <div class="row">
+          <label for="rings">Rings</label>
+          <input id="rings" type="range" min="1" max="8" step="1" value="4"/>
+          <input id="ringsN" type="number" min="1" max="8" step="1" value="4"/>
+        </div>
+
+        <div class="row">
+          <label for="complex">Complexity</label>
+          <input id="complex" type="range" min="1" max="10" step="1" value="6"/>
+          <input id="complexN" type="number" min="1" max="10" step="1" value="6"/>
+        </div>
+
+        <div class="row">
+          <label for="interior">Interior Density</label>
+          <input id="interior" type="range" min="0" max="100" step="1" value="25"/>
+          <input id="interiorN" type="number" min="0" max="100" step="1" value="25"/>
+        </div>
+
+        <div class="row">
+          <label for="symmetry">Symmetry</label>
+          <input id="symmetry" type="range" min="3" max="16" step="1" value="8"/>
+          <input id="symmetryN" type="number" min="3" max="16" step="1" value="8"/>
+        </div>
+
+        <div class="row">
+          <label for="stroke">Stroke</label>
+          <input id="stroke" type="range" min="1" max="8" step="1" value="3"/>
+          <input id="strokeN" type="number" min="1" max="8" step="1" value="3"/>
+        </div>
+
+        <div class="row">
+          <label for="glow">Glow</label>
+          <input id="glow" type="range" min="0" max="100" step="1" value="35"/>
+          <input id="glowN" type="number" min="0" max="100" step="1" value="35"/>
+        </div>
+
+        <div class="row">
+          <label for="color">Color</label>
+          <input id="color" type="color" value="#d9b35a"/>
+          <div class="badge mono" id="colorHex">#d9b35a</div>
+        </div>
+
+        <div class="row">
+          <label for="seed">Seed</label>
+          <input id="seed" type="number" value="1337" step="1" min="0"/>
+          <div class="badge">deterministic</div>
+        </div>
+
+        <div class="row">
+          <label>Animate</label>
+          <input id="animate" type="checkbox"/>
+          <div class="badge">use Speed</div>
+        </div>
+
+        <div class="row">
+          <label for="speed">Speed (deg/s)</label>
+          <input id="speed" type="range" min="-120" max="120" step="1" value="18"/>
+          <input id="speedN" type="number" min="-120" max="120" step="1" value="18"/>
+        </div>
+
+        <div class="row">
+          <label for="gifFps">Export FPS</label>
+          <input id="gifFps" type="range" min="6" max="30" step="1" value="15"/>
+          <input id="gifFpsN" type="number" min="6" max="30" step="1" value="15"/>
+        </div>
+
+        <div class="row">
+          <label for="gifSeconds">Export Seconds</label>
+          <input id="gifSeconds" type="range" min="1" max="6" step="1" value="3"/>
+          <input id="gifSecondsN" type="number" min="1" max="6" step="1" value="3"/>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button id="regen" type="button">Regenerate</button>
+        <button id="randomSeed" type="button">Random Seed</button>
+        <button id="toggleBg" type="button">Invert BG</button>
+        <button id="exportPng" type="button">Export PNG</button>
+        <button id="exportGif" type="button">Export GIF</button>
+        <button id="exportMp4" type="button">Export MP4</button>
+      </div>
+
+      <div class="foot">
+        MP4 export depends on browser support; if unavailable it will export WebM instead.
+      </div>
+    </div>
+
+    <!-- CENTER: preview -->
+    <div class="card canvasCard">
+      <div class="canvasTop">
+        <div class="badge">Preview</div>
+        <div class="badge mono" id="meta"></div>
+      </div>
+      <div class="sigilStage">
+        <canvas id="c" width="1024" height="1024"></canvas>
+      </div>
+      <div class="badge" id="status">Ready.</div>
+    </div>
+
+    <!-- RIGHT: text + inscriptions -->
+    <div class="card sideCard">
+      <div class="panel">
+        <h1 style="font-size:16px; margin-bottom:6px;">Text & Inscriptions</h1>
+        <p>Ring text on multiple rings (each can have its own phrase), custom fonts, and a central symbol inside the smallest ring.</p>
+
+        <div class="row">
+          <label for="ringTextMode">Ring Text Mode</label>
+          <select id="ringTextMode">
+            <option value="none">None</option>
+            <option value="runes">Runes (procedural)</option>
+            <option value="alpha">Alphabetic text</option>
+            <option value="glyphs">Glyph encoding</option>
+          </select>
+          <div class="badge">mode</div>
+        </div>
+
+        <div class="row wrap">
+          <label for="fontSelect">Font</label>
+          <select id="fontSelect"></select>
+          <div class="badge">text</div>
+        </div>
+
+        <div class="row wrap">
+          <label for="fontUpload">Custom Font</label>
+          <input id="fontUpload" type="file" accept=".ttf,.otf,.woff,.woff2"/>
+        </div>
+
+        <!-- built dynamically to avoid DOM/layout bugs -->
+        <div id="inscriptionsUI"></div>
+
+        <div class="row">
+          <label>Text Rings</label>
+          <div class="badge">pick multiple</div>
+        </div>
+
+        <div id="ringTextList" style="display:flex; flex-direction:column; gap:8px; margin:6px 0 2px 0;"></div>
+
+        <div class="row wrap" style="margin-top:6px;">
+          <label style="flex:1;">Bulk</label>
+          <button id="selectAll" type="button" style="padding:8px 10px; border-radius:10px;">Select all</button>
+          <button id="selectNone" type="button" style="padding:8px 10px; border-radius:10px;">Select none</button>
+        </div>
+
+        <div class="foot" style="padding:0; margin-top:10px;">
+          Tip: leave a ring text blank to use <span class="mono">Default Text</span>.
+        </div>
+        <div class="historyHead">
+          <h2>History</h2>
+          <div class="historyActions">
+            <button id="saveHistory" type="button" class="miniBtn">Save snapshot</button>
+            <button id="clearHistory" type="button" class="miniBtn">Clear</button>
+          </div>
+        </div>
+        <p style="margin-top:6px; margin-bottom:10px;">Click a thumbnail to restore that sigil (including text/center settings). Stored locally in your browser.</p>
+        <div id="historyGrid" class="historyGrid"></div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------------- RNG ---------------- */
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+}
+function randRange(rng,a,b){ return a + (b-a)*rng(); }
+function randInt(rng,a,b){ return Math.floor(randRange(rng,a,b+1)); }
+
+/* ---------------- Color helpers ---------------- */
+function hexToRgb(hex){
+  hex = hex.replace('#','').trim();
+  if(hex.length===3) hex = hex.split('').map(x=>x+x).join('');
+  const n = parseInt(hex,16);
+  return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+}
+function mix(a,b,t){
+  return { r: Math.round(a.r + (b.r-a.r)*t),
+           g: Math.round(a.g + (b.g-a.g)*t),
+           b: Math.round(a.b + (b.b-a.b)*t) };
+}
+function rgba(c,a){ return `rgba(${c.r},${c.g},${c.b},${a})`; }
+
+function rgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h=0, s=0, l=(max+min)/2;
+  if(max!==min){
+    const d=max-min;
+    s = l>0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max){
+      case r: h=(g-b)/d + (g<b?6:0); break;
+      case g: h=(b-r)/d + 2; break;
+      case b: h=(r-g)/d + 4; break;
+    }
+    h*=60;
+  }
+  return {h,s,l};
+}
+function hslToRgb(h,s,l){
+  h=((h%360)+360)%360;
+  const c=(1-Math.abs(2*l-1))*s;
+  const x=c*(1-Math.abs((h/60)%2-1));
+  const m=l-c/2;
+  let r1=0,g1=0,b1=0;
+  if(h<60){r1=c;g1=x;}
+  else if(h<120){r1=x;g1=c;}
+  else if(h<180){g1=c;b1=x;}
+  else if(h<240){g1=x;b1=c;}
+  else if(h<300){r1=x;b1=c;}
+  else {r1=c;b1=x;}
+  return {r:Math.round((r1+m)*255), g:Math.round((g1+m)*255), b:Math.round((b1+m)*255)};
+}
+function setBackgroundGlowFromHex(hex){
+  const base = hexToRgb(hex);
+  const hsl = rgbToHsl(base.r, base.g, base.b);
+
+  // derive a secondary hue for the second glow (cooler complement-ish)
+  const h2 = (hsl.h + 160) % 360;
+  const rgb2 = hslToRgb(h2, Math.min(1, hsl.s*0.85 + 0.15), Math.min(0.75, hsl.l*0.75 + 0.15));
+
+  const glowAmt = Number(el('glow')?.value ?? 35) / 100;
+  const a1 = 0.06 + glowAmt*0.10;
+  const a2 = 0.04 + glowAmt*0.08;
+
+  document.documentElement.style.setProperty('--bgGlow1', rgba(base, a1));
+  document.documentElement.style.setProperty('--bgGlow2', rgba(rgb2, a2));
+}
+
+
+/* ---------------- UI helpers ---------------- */
+const el = (id)=>document.getElementById(id);
+const canvas = el('c');
+const ctx = canvas.getContext('2d');
+const statusEl = el('status');
+
+/* ---------------- Accent theming (follows sigil color) ---------------- */
+function setAccentFromHex(hex){
+  const rgb = hexToRgb((hex||"#d9b35a").toString());
+  const root = document.documentElement;
+  root.style.setProperty('--accent', `rgb(${rgb.r},${rgb.g},${rgb.b})`);
+  root.style.setProperty('--accentSoft', `rgba(${rgb.r},${rgb.g},${rgb.b},0.18)`);
+}
+
+/* ---------------- History gallery ---------------- */
+const HISTORY_KEY = "sigilHistory_v1";
+const HISTORY_MAX = 24;
+let historyItems = [];
+
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem(HISTORY_KEY);
+    historyItems = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(historyItems)) historyItems = [];
+  }catch(_e){ historyItems = []; }
+}
+function saveHistory(){
+  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(historyItems.slice(0,HISTORY_MAX))); }catch(_e){}
+}
+function makeThumbDataURL(){
+  const W = 180, H = 180;
+  const off = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const octx = off.getContext('2d');
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = "high";
+  octx.drawImage(canvas, 0, 0, W, H);
+  // Prefer WebP for size if supported.
+  let url = "";
+  try{ url = off.toDataURL("image/webp", 0.82); }catch(_e){}
+  if(!url || url.startsWith("data:,")) url = off.toDataURL("image/png");
+  return url;
+}
+function captureCenterImageDataURL(){
+  if(!centerImageBitmap) return null;
+  try{
+    const off = document.createElement('canvas');
+    off.width = 512; off.height = 512;
+    const octx = off.getContext('2d');
+    octx.clearRect(0,0,512,512);
+    octx.drawImage(centerImageBitmap, 0, 0, 512, 512);
+    return off.toDataURL("image/png");
+  }catch(_e){
+    return null;
+  }
+}
+function currentSnapshot(){
+  return {
+    ts: Date.now(),
+    thumb: makeThumbDataURL(),
+    params: {
+      style: el('style').value,
+      template: el('template').value,
+      rings: Number(el('rings').value),
+      complex: Number(el('complex').value),
+      interior: Number(el('interior').value),
+      symmetry: Number(el('symmetry').value),
+      stroke: Number(el('stroke').value),
+      glow: Number(el('glow').value),
+      color: el('color').value,
+      seed: Number(el('seed').value),
+      animate: !!el('animate').checked,
+      speed: Number(el('speed').value),
+      gifFps: Number(el('gifFps').value),
+      gifSeconds: Number(el('gifSeconds').value),
+
+      ringTextMode: el('ringTextMode').value,
+      fontCSS: el('fontSelect').value,
+
+      darkBg: !!darkBg,
+      ringTextState: ringTextState,
+      inscriptionState: inscriptionState,
+      centerState: centerState,
+      centerImageDataURL: (centerState?.mode === "image") ? captureCenterImageDataURL() : null
+    }
+  };
+}
+function pushHistory(item){
+  // de-dupe by key params (seed+template+color+rings)
+  const key = `${item?.params?.seed}|${item?.params?.template}|${item?.params?.color}|${item?.params?.rings}|${item?.params?.ringTextMode}`;
+  historyItems = historyItems.filter(h => {
+    const k = `${h?.params?.seed}|${h?.params?.template}|${h?.params?.color}|${h?.params?.rings}|${h?.params?.ringTextMode}`;
+    return k !== key;
+  });
+  historyItems.unshift(item);
+  if(historyItems.length > HISTORY_MAX) historyItems.length = HISTORY_MAX;
+  saveHistory();
+  renderHistory();
+}
+async function restoreSnapshot(item){
+  const p = item?.params;
+  if(!p) return;
+
+  // stop anim during restore
+  const wasAnimating = !!el('animate').checked;
+  if(wasAnimating){ el('animate').checked = false; stopAnim(); }
+
+  el('style').value = p.style;
+  el('template').value = p.template;
+  el('rings').value = p.rings; el('ringsN').value = p.rings;
+  el('complex').value = p.complex; el('complexN').value = p.complex;
+  el('interior').value = p.interior; el('interiorN').value = p.interior;
+  el('symmetry').value = p.symmetry; el('symmetryN').value = p.symmetry;
+  el('stroke').value = p.stroke; el('strokeN').value = p.stroke;
+  el('glow').value = p.glow; el('glowN').value = p.glow;
+  el('color').value = p.color; el('colorHex').textContent = (p.color||"").toLowerCase();
+  el('seed').value = p.seed;
+  el('speed').value = p.speed; el('speedN').value = p.speed;
+  el('gifFps').value = p.gifFps; el('gifFpsN').value = p.gifFps;
+  el('gifSeconds').value = p.gifSeconds; el('gifSecondsN').value = p.gifSeconds;
+
+  el('ringTextMode').value = p.ringTextMode;
+
+  // state blobs
+  darkBg = !!p.darkBg;
+  ringTextState = p.ringTextState || {};
+  inscriptionState = p.inscriptionState || { rotateTarget:"whole", defaultText:"" };
+  centerState = p.centerState || { mode:"none", text:"", size:110 };
+
+  // restore font (best effort; custom fonts won't survive reload)
+  if(p.fontCSS) el('fontSelect').value = p.fontCSS;
+
+  // rebuild dependent UIs
+  buildInscriptionsUI();
+  buildRingTextList(true);
+
+  // restore center image if embedded
+  centerImageBitmap = null;
+  if(p.centerImageDataURL && centerState?.mode === "image"){
+    try{
+      const img = await new Promise((resolve, reject)=>{
+        const im = new Image();
+        im.onload = ()=>resolve(im);
+        im.onerror = ()=>reject(new Error("Could not decode stored center image."));
+        im.src = p.centerImageDataURL;
+      });
+      const off = document.createElement('canvas');
+      off.width = 512; off.height = 512;
+      const octx = off.getContext('2d');
+      octx.drawImage(img, 0, 0, 512, 512);
+      if('createImageBitmap' in window) centerImageBitmap = await createImageBitmap(off);
+      else centerImageBitmap = off;
+      centerImageInfo = {w:512,h:512};
+    }catch(_e){
+      centerImageBitmap = null;
+    }
+  }
+
+  // update accent + redraw
+  setAccentFromHex(p.color || el('color').value);
+  setBackgroundGlowFromHex(el('color').value.toLowerCase());
+  draw(angle);
+
+  // restart anim if snapshot had it enabled
+  if(p.animate){
+    el('animate').checked = true;
+    startAnim();
+  }
+}
+function renderHistory(){
+  const grid = el('historyGrid');
+  if(!grid) return;
+  grid.innerHTML = "";
+  if(!historyItems.length){
+    const empty = document.createElement('div');
+    empty.className = "badge";
+    empty.style.padding = "8px 2px";
+    empty.textContent = "No history yet — click “Save snapshot”.";
+    grid.appendChild(empty);
+    return;
+  }
+  for(const item of historyItems){
+    const wrap = document.createElement('div');
+    wrap.className = "historyItem";
+    wrap.title = "Click to restore";
+
+    const img = document.createElement('img');
+    img.className = "historyThumb";
+    img.alt = "sigil";
+    img.loading = "lazy";
+    img.src = item.thumb;
+
+    const meta = document.createElement('div');
+    meta.className = "historyMeta";
+    const left = document.createElement('div');
+    left.className = "mono";
+    left.textContent = `seed ${item?.params?.seed ?? ""}`;
+    const right = document.createElement('div');
+    right.textContent = `tpl ${item?.params?.template ?? ""}`;
+
+    meta.appendChild(left); meta.appendChild(right);
+
+    wrap.appendChild(img);
+    wrap.appendChild(meta);
+
+    wrap.addEventListener('click', ()=>{ restoreSnapshot(item); });
+
+    grid.appendChild(wrap);
+  }
+}
+
+
+let darkBg = true;
+let raf = null;
+let lastTs = 0;
+let angle = 0;
+
+function bindPair(rangeId, numId, onChange){
+  const r = el(rangeId), n = el(numId);
+  const syncFromRange = ()=>{ n.value = r.value; onChange?.(); };
+  const syncFromNum = ()=>{
+    let v = Number(n.value);
+    v = Math.max(Number(r.min), Math.min(Number(r.max), v));
+    n.value = v; r.value = v; onChange?.();
+  };
+  r.addEventListener('input', syncFromRange);
+  n.addEventListener('input', syncFromNum);
+}
+
+/* ---------------- Fonts ---------------- */
+const BUILTIN_FONTS = [
+  {name:"Monospace (default)", css:'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'},
+  {name:"Serif", css:'ui-serif, Georgia, "Times New Roman", Times, serif'},
+  {name:"Sans", css:'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'},
+  {name:"Garamond", css:'Garamond, Georgia, serif'},
+  {name:"Papyrus (if installed)", css:'Papyrus, "Comic Sans MS", cursive'},
+  {name:"Cinzel (if installed)", css:'Cinzel, serif'},
+  {name:"Uncial Antiqua (if installed)", css:'"Uncial Antiqua", serif'}
+];
+let customFontCount = 0;
+
+function populateFontSelect(){
+  const sel = el('fontSelect');
+  const current = sel.value;
+  sel.innerHTML = "";
+  for(const f of BUILTIN_FONTS){
+    const op = document.createElement('option');
+    op.value = f.css;
+    op.textContent = f.name;
+    sel.appendChild(op);
+  }
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+function currentFontCSS(){
+  const sel = el('fontSelect');
+  return sel ? (sel.value || BUILTIN_FONTS[0].css) : BUILTIN_FONTS[0].css;
+}
+
+async function loadCustomFont(file){
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const fmt = (ext === 'ttf') ? 'truetype'
+            : (ext === 'otf') ? 'opentype'
+            : (ext === 'woff') ? 'woff'
+            : (ext === 'woff2') ? 'woff2'
+            : '';
+  const fontName = `CustomFont_${++customFontCount}_${file.name.replace(/[^a-z0-9]+/ig,'_')}`;
+
+  let url = null;
+  try{
+    url = URL.createObjectURL(file);
+    const src = fmt ? `url(${url}) format("${fmt}")` : `url(${url})`;
+    const ff = new FontFace(fontName, src, { style: "normal", weight: "400" });
+    await ff.load();
+    document.fonts.add(ff);
+  }catch(e1){
+    try{
+      const buf = await file.arrayBuffer();
+      const ff2 = new FontFace(fontName, buf, { style: "normal", weight: "400" });
+      await ff2.load();
+      document.fonts.add(ff2);
+    }catch(e2){
+      const msg = (e2 && e2.message) ? e2.message : (e1 && e1.message) ? e1.message : "Unknown font load error";
+      throw new Error(`Font rejected by browser. Try a different font. Details: ${msg}`);
+    }
+  }finally{
+    if(url) URL.revokeObjectURL(url);
+  }
+
+  const sel = el('fontSelect');
+  const op = document.createElement('option');
+  op.value = `"${fontName}", ${BUILTIN_FONTS[0].css}`;
+  op.textContent = `Custom: ${file.name}`;
+  sel.insertBefore(op, sel.children[1] || null);
+  sel.value = op.value;
+}
+
+/* ---------------- Drawing primitives ---------------- */
+function clear(bg){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+function setGlow(color, strength){
+  const blur = strength<=0 ? 0 : (1 + strength * 0.40);
+  ctx.shadowColor = color;
+  ctx.shadowBlur = blur;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+}
+function stroke(pathFn, width, strokeStyle, alpha=1){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = width;
+  ctx.strokeStyle = strokeStyle;
+  ctx.beginPath();
+  pathFn();
+  ctx.stroke();
+  ctx.restore();
+}
+function line(x1,y1,x2,y2){ ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); }
+function circle(cx,cy,r){ ctx.arc(cx,cy,r,0,Math.PI*2); }
+function poly(cx,cy,r,points,rot=0){
+  for(let i=0;i<=points;i++){
+    const a = rot + i*(Math.PI*2/points);
+    const x = cx + Math.cos(a)*r;
+    const y = cy + Math.sin(a)*r;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+}
+function star(cx,cy,r1,r2,points,rot=0){
+  const n = points*2;
+  for(let i=0;i<=n;i++){
+    const a = rot + i*(Math.PI*2/n);
+    const r = (i%2===0)?r1:r2;
+    const x = cx + Math.cos(a)*r;
+    const y = cy + Math.sin(a)*r;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+}
+function ring(r,w,col,a=1){ stroke(()=>circle(0,0,r), w, col, a); }
+function orbs(r, count, orbR, col, w, a=1, rot=0, innerDot=true){
+  for(let i=0;i<count;i++){
+    const ang = rot + i*(Math.PI*2/count);
+    const x = Math.cos(ang)*r, y = Math.sin(ang)*r;
+    stroke(()=>circle(x,y,orbR), w, col, a);
+    if(innerDot) stroke(()=>circle(x,y,orbR*0.22), w, col, a*0.9);
+  }
+}
+function chords(r, count, step, col, w, a=1, rot=0){
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.strokeStyle = col;
+  ctx.lineWidth = w;
+  for(let i=0;i<count;i++){
+    const a1 = rot + i*(Math.PI*2/count);
+    const a2 = rot + (i+step)*(Math.PI*2/count);
+    ctx.beginPath();
+    line(Math.cos(a1)*r, Math.sin(a1)*r, Math.cos(a2)*r, Math.sin(a2)*r);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* ---------------- Text / runes ---------------- */
+function normalizeText(t){ return (t||"").toString().trim(); }
+const GLYPH_ALPHABET = "ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛋᛏᛒᛖᛗᛚᛜᛞᛟ☉☽☿♀⊕♂♃♄♅♆♇✶✷✸✹✺✵✦✧❂❖✥⌁⌬⌭⌮⌯⌰⌱⌲⌳⌴⌵";
+function encodeToGlyphs(text){
+  const t = normalizeText(text);
+  if(!t) return "";
+  const out = [];
+  for(let i=0;i<t.length;i++){
+    const ch = t[i].toUpperCase();
+    if(ch===" "){ out.push(" "); continue; }
+    const idx = (ch.charCodeAt(0)*17 + 13) % GLYPH_ALPHABET.length;
+    out.push(GLYPH_ALPHABET[idx]);
+  }
+  return out.join("");
+}
+function drawCircularTextFull(text, r, color, alpha, sizePx, rot=0){
+  let base = normalizeText(text);
+  if(!base) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 ${sizePx}px ${currentFontCSS()}`;
+
+  const circumference = 2*Math.PI*r;
+  const pitch = Math.max(sizePx*0.55, Math.min(sizePx*0.85, ctx.measureText("M").width*0.92));
+  const targetChars = Math.max(48, Math.floor(circumference / pitch));
+  const sep = " • ";
+
+  let t = base;
+  while(t.length < targetChars) t = (t + sep + base).trim();
+
+  const chars = t.split("");
+  const N = chars.length;
+
+  for(let i=0;i<N;i++){
+    const a = (-Math.PI/2) + rot + i*(Math.PI*2/N);
+    const x = Math.cos(a)*r, y = Math.sin(a)*r;
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(a + Math.PI/2);
+    ctx.fillText(chars[i], 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function runeGlyph(rng, x,y, s, rot=0){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
+  ctx.beginPath();
+  const segs = randInt(rng,3,7);
+  for(let i=0;i<segs;i++){
+    const ax = randRange(rng,-0.45,0.45)*s;
+    const ay = randRange(rng,-0.45,0.45)*s;
+    const bx = ax + randRange(rng,-0.55,0.55)*s;
+    const by = ay + randRange(rng,-0.55,0.55)*s;
+    ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+    if(rng()<0.32){
+      const cx = bx + randRange(rng,-0.25,0.25)*s;
+      const cy = by + randRange(rng,-0.25,0.25)*s;
+      ctx.moveTo(bx,by); ctx.lineTo(cx,cy);
+    }
+  }
+  ctx.restore(); ctx.stroke();
+}
+function ringRunes(rng, r, count, col, w, alpha, rot=0){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = col;
+  ctx.lineWidth = w;
+  const s = Math.max(10, r*0.08);
+  for(let i=0;i<count;i++){
+    const a = rot + i*(Math.PI*2/count);
+    const x = Math.cos(a)*r, y = Math.sin(a)*r;
+    runeGlyph(rng, x, y, s, a + Math.PI/2);
+  }
+  ctx.restore();
+}
+
+/* ---------------- Central symbol ---------------- */
+function drawCentralSymbol(rng, coreR, colMain, colSub, strokeW, mode, text, sizePx){
+  if(!mode || mode==="none") return;
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  const maxR = coreR*0.82;
+
+  if(mode==="circle"){
+    ring(maxR*0.62, strokeW*0.9, colMain, 0.9);
+    ring(maxR*0.40, strokeW*0.65, colSub, 0.7);
+  }else if(mode==="dot"){
+    ctx.fillStyle = colMain;
+    ctx.beginPath();
+    ctx.arc(0,0, Math.max(3, strokeW*1.4), 0, Math.PI*2);
+    ctx.fill();
+    ring(maxR*0.55, strokeW*0.7, colSub, 0.55);
+  }else if(mode==="star"){
+    const pts = 6 + (Math.floor(rng()*5));
+    stroke(()=>star(0,0, maxR*0.72, maxR*0.28, pts, rng()*Math.PI*2), strokeW*0.7, colMain, 0.85);
+    ring(maxR*0.40, strokeW*0.65, colSub, 0.65);
+  }else if(mode==="rune"){
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = colMain;
+    ctx.lineWidth = strokeW*0.9;
+    const s = Math.min(maxR*1.15, sizePx);
+    runeGlyph(rng, 0, 0, s, 0);
+    ctx.restore();
+    ring(maxR*0.62, strokeW*0.6, colSub, 0.55);
+  }else if(mode==="image"){
+    if(!centerImageBitmap){
+      // placeholder if no image loaded
+      stroke(()=>poly(0,0, maxR*0.58, 4, 0), strokeW*0.8, colMain, 0.85);
+      ring(maxR*0.62, strokeW*0.6, colSub, 0.55);
+    }else{
+      ctx.save();
+      ctx.globalAlpha = 0.95;
+      const box = Math.min(maxR*1.25, sizePx*1.05);
+      ctx.drawImage(centerImageBitmap, -box/2, -box/2, box, box);
+      ctx.restore();
+      ring(maxR*0.62, strokeW*0.6, colSub, 0.55);
+    }
+  }else{
+    let t = (text||"").trim();
+    if(!t) t = "✶";
+    if(mode==="glyph") t = encodeToGlyphs(t);
+    if(t.length > 6) t = t.slice(0,6);
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = colMain;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const px = Math.max(16, Math.min(sizePx, maxR*1.25));
+    ctx.font = `700 ${px}px ${currentFontCSS()}`;
+    ctx.fillText(t, 0, 0);
+    ctx.restore();
+    ring(maxR*0.62, strokeW*0.6, colSub, 0.55);
+  }
+  ctx.restore();
+}
+
+/* ---------------- Templates ---------------- */
+function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity, symmetry, interior){
+  const rot = randRange(rng, 0, Math.PI*2);
+  const innerR = R - ringGap*1.05;
+  const midR   = R - ringGap*1.95;
+  const coreR  = Math.max(R*0.15, R - ringGap*(3.2));
+
+  const add = interior/100;
+  const k = Math.max(3, Math.min(16, symmetry));
+  const dense = Math.min(1, (complexity-1)/9);
+
+  ring(innerR, lw*0.85, colMain, 0.95);
+  ring(coreR*1.55, lw*0.75, colSub, 0.75);
+  if(complexity>=4) ring(midR, lw*0.7, colSub, 0.6);
+
+  if(tpl===0){
+    stroke(()=>poly(0,0, midR*0.80, 4, rot), lw, colMain, 0.9);
+    stroke(()=>poly(0,0, midR*0.56, 4, rot+Math.PI/4), lw*0.85, colSub, 0.75);
+    orbs(midR*0.80, 4, lw*3.2, colMain, lw*0.75, 0.9, rot+Math.PI/4, add>0.25);
+  } else if(tpl===1){
+    const pts = Math.max(8, Math.min(14, k+2));
+    stroke(()=>star(0,0, innerR*0.90, innerR*(0.34+0.10*dense), pts, rot), lw*0.9, colMain, 0.9);
+    if(add>0.25) stroke(()=>poly(0,0, innerR*0.72, pts, rot+Math.PI/pts), lw*0.65, colSub, 0.75);
+    if(add>0.55) chords(innerR*0.90, pts, 3, colSub, lw*0.55, 0.6, rot);
+  } else if(tpl===2){
+    stroke(()=>poly(0,0, innerR*0.86, 3, rot), lw, colMain, 0.9);
+    stroke(()=>poly(0,0, innerR*0.60, 3, rot+Math.PI/3), lw*0.75, colSub, 0.75);
+    ring(coreR*1.15, lw*0.75, colMain, 0.9);
+    ring(coreR*0.72, lw*0.65, colSub, 0.7);
+    if(add>0.35) orbs(innerR*0.86, 3, lw*3.0, colMain, lw*0.7, 0.85, rot, add>0.7);
+    if(add>0.6) chords(innerR*0.86, 3, 1, colSub, lw*0.65, 0.55, rot);
+  } else if(tpl===3){
+    stroke(()=>poly(0,0, innerR*0.72, 3, rot), lw*0.85, colMain, 0.9);
+    orbs(innerR*0.92, 3, lw*3.2, colMain, lw*0.75, 0.9, rot, add>0.55);
+    if(add>0.20) chords(innerR*0.92, 3, 1, colSub, lw*0.7, 0.65, rot);
+  } else if(tpl===4){
+    const n = Math.max(6, Math.min(12, k+2));
+    ring(innerR*0.74, lw*0.75, colSub, 0.75);
+    orbs(innerR*0.92, n, lw*3.0, colMain, lw*0.7, 0.9, rot, add>0.4);
+    stroke(()=>star(0,0, innerR*(0.62+0.06*dense), innerR*(0.24+0.05*dense), n, rot), lw*0.65, colSub, 0.7);
+    if(add>0.35) chords(innerR*0.92, n, 2, colSub, lw*0.55, 0.55, rot);
+  } else if(tpl===5){
+    const p = 6;
+    stroke(()=>poly(0,0, innerR*0.86, p, rot), lw*0.85, colMain, 0.85);
+    const chordLayers = 1 + Math.floor(add*4) + Math.floor(dense*2);
+    for(let s=2; s<2+chordLayers; s++){
+      chords(innerR*0.86, p, s%p, colSub, lw*0.5, 0.55, rot + s*0.08);
+    }
+  } else if(tpl===6){
+    stroke(()=>poly(0,0, innerR*0.78, 6, rot), lw*0.95, colMain, 0.9);
+    stroke(()=>poly(0,0, innerR*0.52, 6, rot+Math.PI/6), lw*0.7, colSub, 0.75);
+    if(add>0.25) orbs(innerR*0.78, 6, lw*3.0, colMain, lw*0.7, 0.85, rot, add>0.75);
+  } else if(tpl===7){
+    stroke(()=>star(0,0, innerR*0.86, innerR*(0.32+0.06*dense), 5, rot), lw, colMain, 0.9);
+    orbs(innerR*0.86, 5, lw*2.6, colSub, lw*0.65, 0.7, rot, false);
+    if(add>0.35) chords(innerR*0.86, 5, 2, colSub, lw*0.6, 0.55, rot);
+  } else if(tpl===9){
+    const pts = Math.max(4, Math.min(16, k));
+    ring(innerR*0.88, lw*0.85, colMain, 0.9);
+    stroke(()=>star(0,0, innerR*0.82, innerR*0.32, pts, rot), lw*0.95, colMain, 0.9);
+    stroke(()=>star(0,0, innerR*0.62, innerR*0.22, pts, rot+Math.PI/pts), lw*0.65, colSub, 0.7);
+    if(add>0.55) chords(innerR*0.88, pts, 3, colSub, lw*0.45, 0.5, rot);
+  } else if(tpl===10){
+    ring(innerR*0.90, lw*0.75, colMain, 0.9);
+    stroke(()=>poly(0,0, innerR*0.78, 4, rot), lw*0.95, colMain, 0.9);
+    stroke(()=>poly(0,0, innerR*0.58, 4, rot+Math.PI/4), lw*0.7, colSub, 0.75);
+    stroke(()=>poly(0,0, innerR*0.42, 4, rot), lw*0.6, colSub, 0.65);
+    if(add>0.2){
+      ctx.save(); ctx.globalAlpha = 0.55; ctx.strokeStyle = colSub; ctx.lineWidth = lw*0.55;
+      ctx.beginPath();
+      line(-innerR*0.78, -innerR*0.78, innerR*0.78, innerR*0.78);
+      line(-innerR*0.78,  innerR*0.78, innerR*0.78, -innerR*0.78);
+      ctx.stroke();
+      ctx.restore();
+    }
+  } else if(tpl===11){
+    ring(innerR*0.90, lw*0.75, colMain, 0.9);
+    const rr = innerR*0.46;
+    ctx.save(); ctx.globalAlpha = 0.85; ctx.strokeStyle = colMain; ctx.lineWidth = lw*0.8;
+    ctx.beginPath();
+    ctx.arc(-rr*0.55, 0, rr, -Math.PI/2, Math.PI/2);
+    ctx.arc( rr*0.55, 0, rr,  Math.PI/2, -Math.PI/2);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+    if(add>0.55){
+      const n = Math.max(8, Math.min(16, k+2));
+      orbs(innerR*0.90, n, lw*2.3, colSub, lw*0.5, 0.6, rot, false);
+    }
+  } else if(tpl===12){
+    const n = Math.max(8, Math.min(16, k+4));
+    ring(innerR*0.90, lw*0.75, colMain, 0.9);
+    ctx.save(); ctx.globalAlpha = 0.8; ctx.strokeStyle = colMain; ctx.lineWidth = lw*0.65;
+    for(let i=0;i<n;i++){
+      const a = rot + i*(Math.PI*2/n);
+      const x = Math.cos(a)*innerR*0.35;
+      const y = Math.sin(a)*innerR*0.35;
+      ctx.beginPath();
+      circle(x,y, innerR*0.33);
+      ctx.stroke();
+    }
+    ctx.restore();
+    if(add>0.55) chords(innerR*0.90, n, 5, colSub, lw*0.42, 0.45, rot);
+  } else {
+    // Complex orbit
+    const n = Math.max(7, Math.min(12, k+3));
+    ring(innerR*0.78, lw*0.75, colSub, 0.75);
+    orbs(innerR*0.92, n, lw*2.8, colMain, lw*0.7, 0.9, rot, add>0.35);
+    if(add>0.20) chords(innerR*0.92, n, 3, colSub, lw*0.5, 0.55, rot);
+    if(add>0.55) chords(innerR*0.92, n, 4, colSub, lw*0.45, 0.45, rot+0.18);
+    stroke(()=>poly(0,0, innerR*0.62, 6, rot), lw*0.6, colSub, 0.7);
+  }
+
+  ring(coreR*1.05, lw*0.95, colMain, 0.95);
+  ring(coreR*0.62, lw*0.65, colSub, 0.7);
+  const centerPts = Math.max(5, Math.min(10, Math.floor(5 + dense*5)));
+  if(add>0.15){
+    stroke(()=>star(0,0, coreR*0.95, coreR*(0.38+0.10*dense), centerPts, rot+0.2), lw*0.55, colSub, 0.65);
+  }
+
+  return coreR;
+}
+
+/* ---------------- State-driven inscriptions UI ---------------- */
+let inscriptionState = { rotateTarget: "whole", defaultText: "" };
+let centerState = { mode: "none", text: "", size: 110 };
+let centerImageBitmap = null;
+let centerImageInfo = {w:0,h:0};
+
+function getRotateTarget(){ return inscriptionState.rotateTarget || "whole"; }
+
+function buildInscriptionsUI(){
+  const host = el('inscriptionsUI');
+  host.innerHTML = "";
+  const block = document.createElement('div');
+  block.className = "inscBlock";
+
+  // rotate row
+  const r1 = document.createElement('div'); r1.className="inscRow";
+  const l1 = document.createElement('label'); l1.textContent="Rotate";
+  const s1 = document.createElement('select'); s1.id="rotateTarget";
+  s1.innerHTML = `<option value="whole">Whole sigil</option><option value="text">Text only</option>`;
+  s1.value = inscriptionState.rotateTarget;
+  s1.addEventListener('input', ()=>{ inscriptionState.rotateTarget = s1.value; onParamsChanged(); });
+  const b1 = document.createElement('div'); b1.className="badge"; b1.textContent="animation target";
+  r1.appendChild(l1); r1.appendChild(s1); r1.appendChild(b1);
+
+  // default text
+  const r2 = document.createElement('div'); r2.className="inscRow";
+  const l2 = document.createElement('label'); l2.textContent="Default Text";
+  const t2 = document.createElement('input'); t2.id="userText"; t2.type="text";
+  t2.placeholder = "Fallback text (used when a ring is blank)…";
+  t2.value = inscriptionState.defaultText || "";
+  t2.addEventListener('input', ()=>{ inscriptionState.defaultText = t2.value; if(!el('animate').checked) draw(angle); });
+  const b2 = document.createElement('div'); b2.className="badge"; b2.textContent="rings";
+  r2.appendChild(l2); r2.appendChild(t2); r2.appendChild(b2);
+
+  // center mode
+  const r3 = document.createElement('div'); r3.className="inscRow";
+  const l3 = document.createElement('label'); l3.textContent="Center Mode";
+  const s3 = document.createElement('select'); s3.id="centerMode";
+  s3.innerHTML = `
+    <option value="none">None</option>
+    <option value="circle">Circle</option>
+    <option value="dot">Dot</option>
+    <option value="star">Star</option>
+    <option value="rune">Rune</option>
+    <option value="alpha">Text</option>
+    <option value="glyph">Glyph</option>
+    <option value="image">Image (512x512)</option>`;
+  s3.value = centerState.mode;
+  s3.addEventListener('input', ()=>{ centerState.mode = s3.value; onParamsChanged(); });
+  const b3 = document.createElement('div'); b3.className="badge"; b3.textContent="inside";
+  r3.appendChild(l3); r3.appendChild(s3); r3.appendChild(b3);
+
+  // center text
+  const r4 = document.createElement('div'); r4.className="inscRow";
+  const l4 = document.createElement('label'); l4.textContent="Center Text";
+  const t4 = document.createElement('input'); t4.id="centerText"; t4.type="text";
+  t4.placeholder = "e.g. A, ☉, ᛉ, or a short word";
+  t4.value = centerState.text || "";
+  t4.addEventListener('input', ()=>{ centerState.text = t4.value; if(!el('animate').checked) draw(angle); });
+  const b4 = document.createElement('div'); b4.className="badge"; b4.textContent="optional";
+  r4.appendChild(l4); r4.appendChild(t4); r4.appendChild(b4);
+
+  
+  // center image upload (used when Center Mode = Image)
+  const rImg = document.createElement('div'); rImg.className="inscRow";
+  const lImg = document.createElement('label'); lImg.textContent="Center Image";
+  const fImg = document.createElement('input'); fImg.id="centerImgUpload"; fImg.type="file";
+  fImg.accept = "image/png,image/jpeg,image/webp,image/gif";
+  fImg.style.padding = "6px";
+  fImg.addEventListener('change', async (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    try{
+      statusEl.textContent = `Loading center image: ${f.name}…`;
+      await loadCenterImageFile(f);
+      statusEl.textContent = `Loaded center image: ${f.name}`;
+      if(!el('animate').checked) draw(angle);
+    }catch(err){
+      console.error(err);
+      statusEl.textContent = (err && err.message) ? err.message : "Failed to load center image.";
+    }
+    e.target.value = '';
+  });
+  const bImg = document.createElement('div'); bImg.className="badge"; bImg.textContent="512x512 resample";
+  rImg.appendChild(lImg); rImg.appendChild(fImg); rImg.appendChild(bImg);
+
+// center size
+  const r5 = document.createElement('div'); r5.className="inscRow range";
+  const l5 = document.createElement('label'); l5.textContent="Center Size";
+  const rr = document.createElement('input'); rr.id="centerSize"; rr.type="range"; rr.min="20"; rr.max="220"; rr.step="1"; rr.value=String(centerState.size ?? 110);
+  const nn = document.createElement('input'); nn.id="centerSizeN"; nn.type="number"; nn.min="20"; nn.max="220"; nn.step="1"; nn.value=String(centerState.size ?? 110);
+  r5.appendChild(l5); r5.appendChild(rr); r5.appendChild(nn);
+
+  block.appendChild(r1); block.appendChild(r2); block.appendChild(r3); block.appendChild(r4); block.appendChild(rImg); block.appendChild(r5);
+  host.appendChild(block);
+
+  bindPair('centerSize','centerSizeN', ()=>{ centerState.size = Number(el('centerSize').value); onParamsChanged(); });
+}
+
+
+async function loadCenterImageFile(file){
+  // Decode image and resample to 512×512, then keep an ImageBitmap (or canvas fallback).
+  const blobUrl = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((resolve, reject)=>{
+      const im = new Image();
+      im.onload = ()=>resolve(im);
+      im.onerror = ()=>reject(new Error("Could not decode image."));
+      im.src = blobUrl;
+    });
+
+    const W = 512, H = 512;
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const octx = off.getContext('2d');
+    octx.clearRect(0,0,W,H);
+
+    const s = Math.min(W/img.width, H/img.height);
+    const dw = img.width*s, dh = img.height*s;
+    const dx = (W-dw)/2, dy = (H-dh)/2;
+    octx.imageSmoothingEnabled = true;
+    octx.imageSmoothingQuality = "high";
+    octx.drawImage(img, dx, dy, dw, dh);
+
+    if('createImageBitmap' in window){
+      centerImageBitmap = await createImageBitmap(off);
+    }else{
+      centerImageBitmap = off;
+    }
+    centerImageInfo = {w:W,h:H};
+  }finally{
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+
+
+/* ---------------- Multi-ring text list ---------------- */
+let ringTextState = {}; // key -> {enabled:boolean, text:string}
+let lastRingsN = -1;
+
+function ringKeyLabelList(ringsN){
+  const items = [{key:"outer", label:"Outer"}];
+  for(let i=1;i<=ringsN;i++) items.push({key:`inner:${i}`, label:`Inner #${i}`});
+  return items;
+}
+
+function buildRingTextList(force=false){
+  const ringsN = Number(el('rings').value);
+  if(!force && ringsN === lastRingsN) return;
+  lastRingsN = ringsN;
+
+  const list = el('ringTextList');
+  list.innerHTML = "";
+
+  const items = ringKeyLabelList(ringsN);
+  for(const it of items){
+    if(!ringTextState[it.key]){
+      ringTextState[it.key] = { enabled: (it.key==="outer"), text: "" };
+    }
+  }
+  // drop removed inner states
+  for(const k of Object.keys(ringTextState)){
+    if(k==="outer") continue;
+    if(k.startsWith("inner:")){
+      const idx = parseInt(k.split(":")[1]||"0",10);
+      if(!(idx>=1 && idx<=ringsN)) delete ringTextState[k];
+    }
+  }
+
+  for(const it of items){
+    const row = document.createElement('div');
+    row.className = "ringTextRow";
+
+    const cb = document.createElement('input');
+    cb.type = "checkbox";
+    cb.checked = !!ringTextState[it.key].enabled;
+    cb.addEventListener('change', ()=>{
+      ringTextState[it.key].enabled = cb.checked;
+      if(!el('animate').checked) draw(angle);
+    });
+
+    const k = document.createElement('div');
+    k.className = "k";
+    k.textContent = it.label;
+
+    const txt = document.createElement('input');
+    txt.type = "text";
+    txt.placeholder = (it.key==="outer") ? "Text for outer ring…" : "Text for this ring…";
+    txt.value = ringTextState[it.key].text || "";
+    txt.addEventListener('input', ()=>{
+      ringTextState[it.key].text = txt.value;
+      if(!el('animate').checked) draw(angle);
+    });
+
+    row.appendChild(cb); row.appendChild(k); row.appendChild(txt);
+    list.appendChild(row);
+  }
+}
+
+el('selectAll').addEventListener('click', ()=>{
+  const ringsN = Number(el('rings').value);
+  for(const it of ringKeyLabelList(ringsN)){
+    ringTextState[it.key] = ringTextState[it.key] || {enabled:true, text:""};
+    ringTextState[it.key].enabled = true;
+  }
+  buildRingTextList(true);
+  draw(angle);
+});
+el('selectNone').addEventListener('click', ()=>{
+  const ringsN = Number(el('rings').value);
+  for(const it of ringKeyLabelList(ringsN)){
+    ringTextState[it.key] = ringTextState[it.key] || {enabled:false, text:""};
+    ringTextState[it.key].enabled = false;
+  }
+  buildRingTextList(true);
+  draw(angle);
+});
+
+/* ---------------- Main draw ---------------- */
+function draw(rotAngle=0){
+  const seed = (Number(el('seed').value) >>> 0);
+  const rng = mulberry32(seed);
+
+  const ringsN = Number(el('rings').value);
+  const complexity = Number(el('complex').value);
+  const interior = Number(el('interior').value);
+  const symmetry = Number(el('symmetry').value);
+  const strokeW = Number(el('stroke').value);
+  const glow = Number(el('glow').value);
+  const style = el('style').value;
+  const tplSel = Number(el('template').value);
+
+  const ringTextMode = el('ringTextMode').value;
+  const rotateTarget = getRotateTarget();
+
+  const baseHex = el('color').value.toLowerCase();
+  el('colorHex').textContent = baseHex;
+
+  const base = hexToRgb(baseHex);
+  const white = {r:255,g:255,b:255};
+  const near = mix(base, white, 0.20);
+  const colMain = rgba(near, 0.96);
+  const colSub  = rgba(base, 0.92);
+
+  const bg = darkBg ? "#000000" : "#f6f7fb";
+  clear(bg);
+
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height/2);
+
+  const R = canvas.width * 0.44;
+  const ringGap = R / (ringsN + 2);
+
+  // rotation
+  const wholeRot = (rotateTarget === "whole") ? rotAngle : 0;
+  const textRot  = (rotateTarget === "text")  ? rotAngle : 0;
+  ctx.rotate(wholeRot);
+
+  if(style === "arcane"){
+    setGlow(rgba(base, 0.95), glow);
+  }else{
+    setGlow(rgba(base, 0.35), Math.min(16, glow*0.25));
+  }
+
+  ring(R*1.02, strokeW*1.6, colSub, 0.9);
+  ring(R*0.995, strokeW*0.85, colMain, 0.95);
+
+  // ring stack
+  const extraRings = (complexity>=7 ? 1 : 0) + (complexity>=9 ? 1 : 0);
+  const totalRings = Math.min(10, ringsN + extraRings);
+  const ringRadii = [];
+  for(let i=0;i<totalRings;i++){
+    const r = R - (i+1)*ringGap;
+    if(r < R*0.18) break;
+    ringRadii.push(r);
+    ring(r, strokeW*(i===0?1.1:0.8), colMain, 0.95);
+    if(i%2===0) ring(r - ringGap*0.18, strokeW*0.45, colSub, 0.65);
+  }
+
+  const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 12);
+  const coreR = drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, strokeW, complexity, symmetry, interior);
+
+  // central symbol
+  drawCentralSymbol(rng, coreR, colMain, colSub, strokeW, centerState.mode, centerState.text, Number(centerState.size ?? 110));
+
+  // optional arcane embellishment
+  if(style === "arcane" && interior >= 70){
+    const n = Math.max(8, Math.min(14, symmetry+2));
+    const r = R - ringGap*1.15;
+    chords(r, n, 3, colSub, strokeW*0.45, 0.35, randRange(rng,0,Math.PI*2));
+  }
+
+  // text helpers
+  function defaultPhrase(){
+    const words = ["ARCANA","SIGIL","VITAE","NOX","LUX","AETHER","UMBRA","IGNIS","AQUA","TERRA","ANIMA","SPIRA","ORBITA","NEXUS","PORTA","VIGIL"];
+    const n = 3 + (seed % 4);
+    const parts = [];
+    for(let i=0;i<n;i++) parts.push(words[Math.floor(rng()*words.length)]);
+    return parts.join(" • ");
+  }
+  function textForKey(key){
+    const entry = ringTextState[key];
+    if(entry && normalizeText(entry.text)) return entry.text;
+    const global = normalizeText(inscriptionState.defaultText || "");
+    if(global) return global;
+    return defaultPhrase();
+  }
+  function drawTextAtRadiusWithKey(textR, key){
+    if(ringTextMode === "none") return;
+    if(ringTextMode === "runes"){
+      const count = Math.max(24, Math.floor(symmetry*4 + complexity*3));
+      ringRunes(rng, textR, count, colMain, strokeW*0.55, 0.55, textRot);
+    }else{
+      let txt = textForKey(key);
+      if(ringTextMode === "glyphs") txt = encodeToGlyphs(txt);
+      const sizePx = Math.max(12, Math.floor(textR*0.055));
+      drawCircularTextFull(txt, textR, colMain, 0.68, sizePx, textRot);
+    }
+  }
+
+  // place on selected rings
+  const outerTextR = R*1.045;
+  if(ringTextState.outer?.enabled) drawTextAtRadiusWithKey(outerTextR, "outer");
+  const maxInner = Math.min(ringsN, ringRadii.length);
+  for(let i=1;i<=maxInner;i++){
+    const key = `inner:${i}`;
+    if(!ringTextState[key]?.enabled) continue;
+    drawTextAtRadiusWithKey(ringRadii[i-1] + ringGap*0.10, key);
+  }
+
+  ctx.restore();
+  el('meta').textContent = `seed=${seed} · tpl=${tpl} · rings=${ringsN} · sym=${symmetry} · text=${ringTextMode}`;
+}
+
+/* ---------------- Animation loop ---------------- */
+function tick(ts){
+  if(!lastTs) lastTs = ts;
+  const dt = (ts - lastTs)/1000;
+  lastTs = ts;
+
+  const speed = Number(el('speed').value) * (Math.PI/180);
+  angle += speed * dt;
+  draw(angle);
+  raf = requestAnimationFrame(tick);
+}
+function startAnim(){
+  stopAnim();
+  lastTs = 0;
+  raf = requestAnimationFrame(tick);
+}
+function stopAnim(){
+  if(raf){ cancelAnimationFrame(raf); raf = null; }
+}
+
+/* ---------------- Params & buttons ---------------- */
+function onParamsChanged(){
+  try{ setBackgroundGlowFromHex(el('color').value.toLowerCase()); }catch(_e){}
+  buildRingTextList(false); // rebuild only if ring count changed
+  if(el('animate').checked){
+    // animation tick will reflect changes
+  }else{
+    draw(angle);
+  }
+}
+
+bindPair('rings','ringsN', ()=>{ buildRingTextList(true); onParamsChanged(); });
+bindPair('complex','complexN', onParamsChanged);
+bindPair('interior','interiorN', onParamsChanged);
+bindPair('symmetry','symmetryN', onParamsChanged);
+bindPair('stroke','strokeN', onParamsChanged);
+bindPair('glow','glowN', onParamsChanged);
+bindPair('speed','speedN', ()=>{});
+bindPair('gifFps','gifFpsN', null);
+bindPair('gifSeconds','gifSecondsN', null);
+
+['style','template','ringTextMode'].forEach(id=> el(id).addEventListener('input', onParamsChanged));
+el('seed').addEventListener('input', onParamsChanged);
+el('color').addEventListener('input', ()=>{ el('colorHex').textContent = el('color').value.toLowerCase(); setAccentFromHex(el('color').value); onParamsChanged(); });
+
+el('animate').addEventListener('change', ()=>{
+  if(el('animate').checked){ startAnim(); }
+  else { stopAnim(); draw(angle); }
+});
+
+el('regen').addEventListener('click', ()=>{ draw(angle); });
+el('randomSeed').addEventListener('click', ()=>{ el('seed').value = Math.floor(Math.random()*1e9); onParamsChanged(); try{ pushHistory(currentSnapshot()); }catch(_e){} });
+el('toggleBg').addEventListener('click', ()=>{ darkBg = !darkBg; draw(angle); });
+
+el('exportPng').addEventListener('click', ()=>{
+  const a = document.createElement('a');
+  a.download = `sigil_${el('seed').value}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  try{ pushHistory(currentSnapshot()); }catch(_e){}
+});
+
+/* ---------------- GIF encoder (small) ---------------- */
+function lzwEncode(minCodeSize, indices){
+  const CLEAR = 1 << minCodeSize;
+  const EOI   = CLEAR + 1;
+  let codeSize = minCodeSize + 1;
+
+  const dict = new Map();
+  const dictInit = () => { dict.clear(); for(let i=0;i<CLEAR;i++) dict.set(String.fromCharCode(i), i); };
+  dictInit();
+  let nextCode = EOI + 1;
+
+  const outBits = [];
+  let cur = 0, curBits = 0;
+  const pushCode = (code) => {
+    cur |= code << curBits;
+    curBits += codeSize;
+    while(curBits >= 8){
+      outBits.push(cur & 255);
+      cur >>= 8;
+      curBits -= 8;
+    }
+  };
+
+  pushCode(CLEAR);
+  let w = "";
+  for(let i=0;i<indices.length;i++){
+    const k = String.fromCharCode(indices[i]);
+    const wk = w + k;
+    if(dict.has(wk)){
+      w = wk;
+    }else{
+      pushCode(dict.get(w));
+      if(nextCode < 4096){
+        dict.set(wk, nextCode++);
+        if(nextCode === (1 << codeSize) && codeSize < 12) codeSize++;
+      }else{
+        pushCode(CLEAR);
+        codeSize = minCodeSize + 1;
+        dictInit();
+        nextCode = EOI + 1;
+      }
+      w = k;
+    }
+  }
+  if(w) pushCode(dict.get(w));
+  pushCode(EOI);
+  if(curBits > 0) outBits.push(cur & 255);
+  return new Uint8Array(outBits);
+}
+function quantizeUniformRGBA(data, maxColors){
+  const n = data.length/4;
+  let levels = 2;
+  while((levels+1)**3 <= maxColors) levels++;
+  const step = 256 / levels;
+
+  const palMap = new Map();
+  const palette = [];
+  const indices = new Uint8Array(n);
+
+  const keyOf = (r,g,b) => (r<<16)|(g<<8)|b;
+
+  for(let i=0;i<n;i++){
+    const r0 = data[i*4], g0 = data[i*4+1], b0 = data[i*4+2], a0 = data[i*4+3];
+    const r = a0===255 ? r0 : 0;
+    const g = a0===255 ? g0 : 0;
+    const b = a0===255 ? b0 : 0;
+
+    const rq = Math.min(levels-1, Math.floor(r/step));
+    const gq = Math.min(levels-1, Math.floor(g/step));
+    const bq = Math.min(levels-1, Math.floor(b/step));
+    const rr = Math.floor((rq+0.5)*step);
+    const gg = Math.floor((gq+0.5)*step);
+    const bb = Math.floor((bq+0.5)*step);
+
+    const key = keyOf(rr,gg,bb);
+    let idx = palMap.get(key);
+    if(idx === undefined){
+      idx = palette.length/3;
+      if(idx >= maxColors) idx = maxColors-1;
+      else { palette.push(rr,gg,bb); palMap.set(key, idx); }
+    }
+    indices[i] = idx;
+  }
+
+  let tableSize = 2;
+  while(tableSize < palette.length/3) tableSize <<= 1;
+  tableSize = Math.min(256, tableSize);
+  while(palette.length/3 < tableSize) palette.push(0,0,0);
+
+  return { palette: new Uint8Array(palette), indexData: indices, tableSize };
+}
+function writeBytes(arr, bytes){ for(const b of bytes) arr.push(b & 255); }
+function writeStr(arr, s){ for(let i=0;i<s.length;i++) arr.push(s.charCodeAt(i)); }
+function writeU16(arr, v){ arr.push(v & 255, (v>>8) & 255); }
+
+function buildGIF(frames, w, h, fps){
+  const delayCs = Math.max(1, Math.round(100 / fps));
+  const out = [];
+  writeStr(out, "GIF89a");
+  writeU16(out, w); writeU16(out, h);
+
+  const q0 = quantizeUniformRGBA(frames[0].data, 256);
+  const gctSizePow = Math.round(Math.log2(q0.tableSize));
+  const packed = (1<<7) | (7<<4) | (0<<3) | ((gctSizePow-1) & 7);
+  out.push(packed);
+  out.push(0); out.push(0);
+  writeBytes(out, q0.palette);
+
+  // Netscape loop forever
+  writeBytes(out, [0x21,0xFF,0x0B]);
+  writeStr(out, "NETSCAPE2.0");
+  writeBytes(out, [0x03,0x01,0x00,0x00,0x00]);
+
+  for(let fi=0; fi<frames.length; fi++){
+    const q = (fi===0) ? q0 : quantizeUniformRGBA(frames[fi].data, 256);
+
+    writeBytes(out, [0x21,0xF9,0x04]);
+    out.push((2<<2) | 0);
+    writeU16(out, delayCs);
+    out.push(0); out.push(0);
+
+    writeBytes(out, [0x2C]);
+    writeU16(out, 0); writeU16(out, 0);
+    writeU16(out, w); writeU16(out, h);
+    out.push(0x00);
+
+    const minCodeSize = Math.max(2, gctSizePow);
+    out.push(minCodeSize);
+    const lzw = lzwEncode(minCodeSize, q.indexData);
+
+    let offset = 0;
+    while(offset < lzw.length){
+      const blockSize = Math.min(255, lzw.length - offset);
+      out.push(blockSize);
+      for(let i=0;i<blockSize;i++) out.push(lzw[offset+i]);
+      offset += blockSize;
+    }
+    out.push(0x00);
+  }
+  out.push(0x3B);
+  return new Uint8Array(out);
+}
+
+el('exportGif').addEventListener('click', async ()=>{
+  try{
+    statusEl.textContent = "Rendering GIF…";
+    const fps = Number(el('gifFps').value);
+    const seconds = Number(el('gifSeconds').value);
+    const framesCount = Math.max(2, Math.floor(fps * seconds));
+
+    const W = 512, H = 512;
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const offCtx = off.getContext('2d');
+
+    const baseAngle = angle || 0;
+    const speedRad = (Number(el('speed').value) * Math.PI/180);
+
+    const frameData = [];
+    for(let i=0;i<framesCount;i++){
+      const t = i / framesCount;
+      const a = baseAngle + speedRad * (t * seconds);
+      draw(a);
+      offCtx.clearRect(0,0,W,H);
+      offCtx.drawImage(canvas, 0,0, W,H);
+      frameData.push(offCtx.getImageData(0,0,W,H));
+      statusEl.textContent = `Rendering GIF… ${i+1}/${framesCount}`;
+      await new Promise(r=>setTimeout(r, 0));
+    }
+
+    const gifBytes = buildGIF(frameData, W, H, fps);
+    const blob = new Blob([gifBytes], {type:"image/gif"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.download = `sigil_${el('seed').value}.gif`;
+    a.href = url;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 15000);
+    statusEl.textContent = "GIF exported.";
+    try{ pushHistory(currentSnapshot()); }catch(_e){}
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = "GIF export failed (see console).";
+  }
+});
+
+/* ---------------- Export MP4/WebM via MediaRecorder ---------------- */
+function pickVideoMime(preferMp4=true){
+  const candidatesMp4 = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'];
+  const candidatesWebm = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  const list = preferMp4 ? candidatesMp4.concat(candidatesWebm) : candidatesWebm.concat(candidatesMp4);
+  for(const m of list){
+    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; }catch(_e){}
+  }
+  return '';
+}
+async function exportVideo(desiredExt){
+  const fps = Number(el('gifFps').value);
+  const seconds = Number(el('gifSeconds').value);
+  const framesCount = Math.max(2, Math.floor(fps * seconds));
+
+  const preferMp4 = (desiredExt === 'mp4');
+  const mime = pickVideoMime(preferMp4);
+  if(!mime){
+    statusEl.textContent = "Video export not supported in this browser.";
+    alert("Your browser doesn't support MediaRecorder export for this format. Try another browser.");
+    return;
+  }
+  const actualExt = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+  statusEl.textContent = (desiredExt === 'mp4' && actualExt !== 'mp4')
+    ? "MP4 not supported here — exporting WebM instead."
+    : `Recording ${actualExt.toUpperCase()}…`;
+
+  const stream = canvas.captureStream(fps);
+  const chunks = [];
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+  rec.ondataavailable = (e)=>{ if(e.data && e.data.size) chunks.push(e.data); };
+
+  const baseAngle = angle || 0;
+  const speedRad = (Number(el('speed').value) * Math.PI/180);
+
+  const wasAnimating = !!el('animate').checked;
+  if(wasAnimating) stopAnim();
+
+  rec.start();
+  try{
+    for(let i=0;i<framesCount;i++){
+      const t = i / framesCount;
+      const a = baseAngle + speedRad * (t * seconds);
+      draw(a);
+      statusEl.textContent = `Recording ${actualExt.toUpperCase()}… ${i+1}/${framesCount}`;
+      await new Promise(r=>setTimeout(r, Math.round(1000/fps)));
+    }
+  }finally{
+    rec.stop();
+  }
+  await new Promise(res=>{ rec.onstop = ()=>res(); });
+
+  if(wasAnimating){ el('animate').checked = true; startAnim(); }
+
+  const blob = new Blob(chunks, { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = `sigil_${el('seed').value}.${actualExt}`;
+  a.href = url;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 20000);
+  statusEl.textContent = `${actualExt.toUpperCase()} exported.`;
+  try{ pushHistory(currentSnapshot()); }catch(_e){}
+}
+el('exportMp4').addEventListener('click', async ()=>{
+  try{ await exportVideo('mp4'); }
+  catch(err){ console.error(err); statusEl.textContent = (err?.message)||"Video export failed."; }
+});
+
+/* ---------------- Init ---------------- */
+
+loadHistory();
+renderHistory();
+setAccentFromHex(el('color').value);
+
+el('saveHistory').addEventListener('click', ()=>{
+  // ensure we're capturing current look
+  if(!el('animate').checked) draw(angle);
+  pushHistory(currentSnapshot());
+  statusEl.textContent = "Saved to history.";
+});
+el('clearHistory').addEventListener('click', ()=>{
+  historyItems = [];
+  saveHistory();
+  renderHistory();
+  statusEl.textContent = "History cleared.";
+});
+
+populateFontSelect();
+buildInscriptionsUI();
+buildRingTextList(true);
+draw(0);
+
+// listeners after init
+el('fontSelect').addEventListener('input', onParamsChanged);
+el('fontUpload').addEventListener('change', async (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  try{
+    statusEl.textContent = `Loading font: ${f.name}…`;
+    await loadCustomFont(f);
+    statusEl.textContent = `Loaded font: ${f.name}`;
+    onParamsChanged();
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = (err && err.message) ? err.message : "Failed to load font.";
+  }
+  e.target.value = '';
+});
+</script>
+</body>
+</html>
