@@ -117,6 +117,16 @@ input[type="color"]{width:64px; height:36px; padding:0; border:none; background:
 .foot{padding:0 16px 16px; color:var(--muted); font-size:12px; line-height:1.35;}
 
 /* Side panels */
+/* Ensure left/right panels always scroll if content exceeds viewport */
+.sideCard{
+  display:flex;
+  flex-direction:column;
+}
+.sideCard .panel{
+  flex: 1 1 auto;
+  overflow:auto;
+}
+
 .sideCard{height: calc(100vh - 20px);}
 .sideCard .panel{
   max-height: calc(100vh - 20px);
@@ -140,6 +150,8 @@ input[type="color"]{width:64px; height:36px; padding:0; border:none; background:
   flex-direction:column;
   gap:10px;
   align-items:center;
+  justify-content:flex-start;
+  min-height:0;
 }
 .canvasTop{
   width:100%;
@@ -153,18 +165,32 @@ input[type="color"]{width:64px; height:36px; padding:0; border:none; background:
   aspect-ratio: 1 / 1;
   display:grid;
   place-items:center;
-  max-height: min(72vh, 920px);
-  max-width: min(100%, 920px);
+  max-height: min(68vh, 820px);
+  max-width: min(92%, 820px);
   margin: 0 auto;
+  padding: 14px;
+  box-sizing: border-box;
+
+  /* important for flex layout: allow it to shrink without overlapping the status */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 canvas{
   width:100%;
   height:100%;
+  display:block;
   border-radius: 14px;
   background:#000;
   border:1px solid rgba(255,255,255,.09);
 }
-#status{width:100%; padding: 0 6px;}
+#status{
+  width:100%;
+  padding: 0 6px;
+  margin-top: 4px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 3;
+}
 
 /* Ring text list */
 .ringTextRow{
@@ -311,6 +337,41 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
       <div class="panel">
         <h1>Procedural Sigil Generator</h1>
         <p>Clean geometric seals, optional glow. Control rings, complexity, interior density, symmetry, and export PNG/GIF/MP4 (MP4 falls back to WebM if needed).</p>
+
+        
+        
+        <!-- Advanced Options Toggle -->
+        <div style="margin-top:14px;">
+  <button id="advancedToggleBtn" type="button" class="miniBtn" style="width:100%; display:flex; align-items:center; justify-content:space-between;">
+    <span>Advanced Options</span>
+    <span class="badge" id="advancedBadge">hidden</span>
+  </button>
+</div>
+
+        <div id="advancedPanel" style="display:none; margin-top:10px;">
+
+          <div class="row">
+            <label for="ringRole">Ring Role (default)</label>
+            <select id="ringRole">
+              <option value="structure">Structure</option>
+              <option value="ornament">Ornament</option>
+              <option value="glyph">Glyph</option>
+              <option value="connector">Connector</option>
+            </select>
+            <div class="badge">layer</div>
+          </div>
+
+          <div class="historyHead" style="margin-top:14px; align-items:center;">
+            <h2>Layer System</h2>
+            <div class="badge">groups</div>
+          </div>
+          <p style="margin-top:6px; margin-bottom:10px;">
+            Toggle groups, pick color source, override stroke style, and set opacity per layer.
+          </p>
+
+          <div id="layerSystemUI"></div>
+
+        </div>
 
         <div class="row">
           <label for="style">Style</label>
