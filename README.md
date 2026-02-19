@@ -55,7 +55,7 @@ Everything runs locally in your browser.
 
 ## 🚀 Live Demo
 
-👉 [https://YOURNAME.github.io/sigil-generator/](https://YOURNAME.github.io/sigil-generator/)
+👉 [https://schlabbster.github.io/Magic-Sigil-Generator/](https://schlabbster.github.io/Magic-Sigil-Generator/)
 
 ---
 
