@@ -240,7 +240,6 @@ Designed for static hosting:
 * MP4 export depends on MediaRecorder support
 * Large GIF exports may take time
 * Custom fonts are stored locally (per browser)
-* Clearing site data removes saved fonts and snapshots
 
 ---
 
