@@ -328,6 +328,112 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
 }
 .historyMeta .mono{ font-size:11px; }
 
+
+
+/* ---------- Changelog / What's New ---------- */
+.changelogBox{
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+  border-radius:14px;
+  padding:10px 10px;
+}
+.changelogTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.changelogTop .tag{
+  font-size:11px;
+  color: var(--muted);
+}
+.changelogList{
+  margin:0;
+  padding-left: 18px;
+  color: var(--text);
+  font-size:12px;
+  line-height:1.45;
+}
+.changelogList li{ margin:6px 0; }
+
+
+/* ---------- UI STRUCTURE: sections + simple/advanced ---------- */
+.panel .section{
+  border:1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.22);
+  border-radius: 14px;
+  margin: 10px 0;
+  overflow:hidden;
+}
+.panel .section>summary{
+  list-style:none;
+  cursor:pointer;
+  padding: 12px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  user-select:none;
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.panel .section>summary::-webkit-details-marker{display:none;}
+.panel .section>summary .meta{
+  opacity:.7;
+  font-weight:600;
+  font-size:12px;
+  white-space:nowrap;
+}
+.panel .section .sectionBody{
+  padding: 10px 12px 12px 12px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.uiModeBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin: 10px 0 12px 0;
+  padding: 10px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.18);
+  border-radius: 14px;
+}
+.uiModeBar .left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.uiModeBar .title{font-weight:800; font-size:13px;}
+.uiModeBar .hint{font-size:12px; opacity:.7;}
+.seg{
+  display:inline-flex;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;
+  overflow:hidden;
+  background: rgba(255,255,255,.04);
+}
+.seg button{
+  appearance:none;
+  border:0;
+  color:inherit;
+  background: transparent;
+  padding: 8px 10px;
+  cursor:pointer;
+  font-weight:750;
+  font-size:12px;
+  opacity:.85;
+}
+.seg button.active{
+  background: rgba(255,255,255,.12);
+  opacity:1;
+}
+[data-ui="advancedOnly"][data-hidden="1"],
+[data-ui="simpleOnly"][data-hidden="1"]{
+  display:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -340,179 +446,264 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
 
         
         
-        <!-- Advanced Options Toggle -->
-        <div style="margin-top:14px;">
-  <button id="advancedToggleBtn" type="button" class="miniBtn" style="width:100%; display:flex; align-items:center; justify-content:space-between;">
-    <span>Advanced Options</span>
-    <span class="badge" id="advancedBadge">hidden</span>
-  </button>
-</div>
-
-        <div id="advancedPanel" style="display:none; margin-top:10px;">
-
-          <div class="row">
-            <label for="ringRole">Ring Role (default)</label>
-            <select id="ringRole">
-              <option value="structure">Structure</option>
-              <option value="ornament">Ornament</option>
-              <option value="glyph">Glyph</option>
-              <option value="connector">Connector</option>
-            </select>
-            <div class="badge">layer</div>
-          </div>
-
-          <div class="historyHead" style="margin-top:14px; align-items:center;">
-            <h2>Layer System</h2>
-            <div class="badge">groups</div>
-          </div>
-          <p style="margin-top:6px; margin-bottom:10px;">
-            Toggle groups, pick color source, override stroke style, and set opacity per layer.
-          </p>
-
-          <div id="layerSystemUI"></div>
-
-        </div>
-
-        <div class="row">
-          <label for="style">Style</label>
-          <select id="style">
-            <option value="seals">Seals (clean geometric)</option>
-            <option value="arcane">Arcane (glow)</option>
-          </select>
-          <div class="badge">look</div>
-        </div>
-
-        <div class="row">
-          <label for="template">Template</label>
-          <select id="template">
-            <option value="-1">Random</option>
-            <option value="0">Square seal</option>
-            <option value="1">Mandala star</option>
-            <option value="2">Triangle concentric</option>
-            <option value="3">Triad nodes</option>
-            <option value="4">Orbital ring</option>
-            <option value="5">Lattice / grid</option>
-            <option value="6">Hex seal</option>
-            <option value="7">Pentagram</option>
-            <option value="8">Complex orbit</option>
-            <option value="9">Compass rose</option>
-            <option value="10">Concentric squares</option>
-            <option value="11">Vesica / lens</option>
-            <option value="12">Rosette</option>
-          
-            <option value="13">Solar wheel</option>
-            <option value="14">Celtic weave</option>
-            <option value="15">Petal bloom</option>
-            <option value="16">Hexagram seal</option>
-            <option value="17">Runic lattice</option>
-            <option value="18">Crosshair alchemy</option>
-            <option value="19">Spiral orbit</option>
-            <option value="20">Gate sigil</option>
-
-            <option value="21">Chaos web</option>
-            <option value="22">Fractal ring</option>
-            <option value="23">Tri-weave</option>
-            <option value="24">Radiant mesh</option>
-            <option value="25">Obsidian seal</option>
-            <option value="26">Astral grid</option>
-            <option value="27">Void bloom</option>
-            <option value="28">Sigil nexus</option>
-            <option value="29">Infinite lattice</option>
-</select>
-          <div class="badge">shape</div>
-        </div>
-
-        <div class="row">
-          <label for="rings">Rings</label>
-          <input id="rings" type="range" min="1" max="8" step="1" value="4"/>
-          <input id="ringsN" type="number" min="1" max="8" step="1" value="4"/>
-        </div>
-
-        <div class="row">
-          <label for="complex">Complexity</label>
-          <input id="complex" type="range" min="1" max="40" step="1" value="6"/>
-          <input id="complexN" type="number" min="1" max="40" step="1" value="6"/>
-        </div>
-
-        <div class="row">
-          <label for="interior">Interior Density</label>
-          <input id="interior" type="range" min="0" max="300" step="1" value="25"/>
-          <input id="interiorN" type="number" min="0" max="300" step="1" value="25"/>
-        </div>
-
-        <div class="row">
-          <label for="symmetry">Symmetry</label>
-          <input id="symmetry" type="range" min="3" max="48" step="1" value="8"/>
-          <input id="symmetryN" type="number" min="3" max="48" step="1" value="8"/>
-        </div>
-
         
-        <div class="row">
-          <label for="strokeStyle">Stroke Style</label>
-          <select id="strokeStyle">
-            <option value="solid">Solid</option>
-            <option value="dash">Dashed</option>
-            <option value="dot">Dotted</option>
-            <option value="double">Double</option>
-          </select>
-          <div class="badge">lines</div>
+        <!-- UI Mode -->
+        <div class="uiModeBar" id="uiModeBar">
+          <div class="left">
+            <div class="title">UI Mode</div>
+            <div class="hint">Simple hides technical controls.</div>
+          </div>
+          <div class="seg" role="tablist" aria-label="UI Mode">
+            <button type="button" id="btnSimple" class="active">Simple</button>
+            <button type="button" id="btnAdvanced">Advanced</button>
+          </div>
         </div>
 
-        <div class="row">
-          <label for="stroke">Stroke</label>
-          <input id="stroke" type="range" min="1" max="8" step="1" value="3"/>
-          <input id="strokeN" type="number" min="1" max="8" step="1" value="3"/>
-        </div>
+        <!-- Core / Color / Motion / Export / Advanced -->
+        <details class="section" open>
+          <summary>
+            <span>Core Design</span>
+            <span class="meta">template • rings • structure</span>
+          </summary>
+          <div class="sectionBody">
 
-        <div class="row">
-          <label for="glow">Glow</label>
-          <input id="glow" type="range" min="0" max="100" step="1" value="35"/>
-          <input id="glowN" type="number" min="0" max="100" step="1" value="35"/>
-        </div>
+            <div class="row">
+              <label for="style">Style</label>
+              <select id="style">
+                <option value="seals">Seals (clean geometric)</option>
+                <option value="arcane">Arcane (glow)</option>
+              </select>
+              <div class="badge">look</div>
+            </div>
 
-        <div class="row">
-          <label for="color">Color</label>
-          <input id="color" type="color" value="#d9b35a"/>
-          <div class="badge mono" id="colorHex">#d9b35a</div>
-        </div>
+            <div class="row">
+              <label for="template">Template</label>
+              <select id="template">
+                <option value="-1">Random</option>
+                <option value="0">Square seal</option>
+                <option value="1">Mandala star</option>
+                <option value="2">Triangle concentric</option>
+                <option value="3">Triad nodes</option>
+                <option value="4">Orbital ring</option>
+                <option value="5">Lattice / grid</option>
+                <option value="6">Hex seal</option>
+                <option value="7">Pentagram</option>
+                <option value="8">Complex orbit</option>
+                <option value="9">Compass rose</option>
+                <option value="10">Concentric squares</option>
+                <option value="11">Vesica / lens</option>
+                <option value="12">Rosette</option>
+                <option value="13">Solar wheel</option>
+                <option value="14">Celtic weave</option>
+                <option value="15">Petal bloom</option>
+                <option value="16">Hexagram seal</option>
+                <option value="17">Runic lattice</option>
+                <option value="18">Crosshair alchemy</option>
+                <option value="19">Spiral orbit</option>
+                <option value="20">Gate sigil</option>
+                <option value="21">Chaos web</option>
+                <option value="22">Fractal ring</option>
+                <option value="23">Tri-weave</option>
+                <option value="24">Radiant mesh</option>
+                <option value="25">Obsidian seal</option>
+                <option value="26">Astral grid</option>
+                <option value="27">Void bloom</option>
+                <option value="28">Sigil nexus</option>
+                <option value="29">Infinite lattice</option>
+              </select>
+              <div class="badge">shape</div>
+            </div>
 
+            <div class="row">
+              <label for="rings">Rings</label>
+              <input id="rings" type="range" min="1" max="8" step="1" value="4"/>
+              <input id="ringsN" type="number" min="1" max="8" step="1" value="4"/>
+            </div>
 
-        <div class="row">
-          <label for="color2">Accent</label>
-          <input id="color2" type="color" value="#6ad9ff"/>
-          <div class="badge mono" id="color2Hex">#6ad9ff</div>
-        </div>
+            <div class="row">
+              <label for="complex">Complexity</label>
+              <input id="complex" type="range" min="1" max="40" step="1" value="6"/>
+              <input id="complexN" type="number" min="1" max="40" step="1" value="6"/>
+            </div>
 
-        <div class="row">
-          <label for="seed">Seed</label>
-          <input id="seed" type="number" value="1337" step="1" min="0"/>
-          <div class="badge">deterministic</div>
-        </div>
+            <div class="row">
+              <label for="interior">Interior Density</label>
+              <input id="interior" type="range" min="0" max="300" step="1" value="25"/>
+              <input id="interiorN" type="number" min="0" max="300" step="1" value="25"/>
+            </div>
 
-        <div class="row">
-          <label>Animate</label>
-          <input id="animate" type="checkbox"/>
-          <div class="badge">use Speed</div>
-        </div>
+            <div class="row">
+              <label for="symmetry">Symmetry</label>
+              <input id="symmetry" type="range" min="3" max="48" step="1" value="8"/>
+              <input id="symmetryN" type="number" min="3" max="48" step="1" value="8"/>
+            </div>
 
-        <div class="row">
-          <label for="speed">Speed (deg/s)</label>
-          <input id="speed" type="range" min="-120" max="120" step="1" value="18"/>
-          <input id="speedN" type="number" min="-120" max="120" step="1" value="18"/>
-        </div>
+          </div>
+        </details>
 
-        <div class="row">
-          <label for="gifFps">Export FPS</label>
-          <input id="gifFps" type="range" min="6" max="30" step="1" value="15"/>
-          <input id="gifFpsN" type="number" min="6" max="30" step="1" value="15"/>
-        </div>
+        <details class="section">
+          <summary>
+            <span>Color & Style</span>
+            <span class="meta">stroke • glow • palette</span>
+          </summary>
+          <div class="sectionBody">
 
-        <div class="row">
-          <label for="gifSeconds">Export Seconds</label>
-          <input id="gifSeconds" type="range" min="1" max="6" step="1" value="3"/>
-          <input id="gifSecondsN" type="number" min="1" max="6" step="1" value="3"/>
-        </div>
-      </div>
+            <div class="row">
+              <label for="strokeStyle">Stroke Style</label>
+              <select id="strokeStyle">
+                <option value="solid">Solid</option>
+                <option value="dash">Dashed</option>
+                <option value="dot">Dotted</option>
+                <option value="double">Double</option>
+              </select>
+              <div class="badge">lines</div>
+            </div>
+
+            <div class="row">
+              <label for="stroke">Stroke</label>
+              <input id="stroke" type="range" min="1" max="8" step="1" value="3"/>
+              <input id="strokeN" type="number" min="1" max="8" step="1" value="3"/>
+            </div>
+
+            <div class="row">
+              <label for="glow">Glow</label>
+              <input id="glow" type="range" min="0" max="100" step="1" value="35"/>
+              <input id="glowN" type="number" min="0" max="100" step="1" value="35"/>
+            </div>
+
+            <div class="row">
+              <label for="color">Color</label>
+              <input id="color" type="color" value="#d9b35a"/>
+              <div class="badge mono" id="colorHex">#d9b35a</div>
+            </div>
+
+            <div class="row">
+              <label for="color2">Accent</label>
+              <input id="color2" type="color" value="#6ad9ff"/>
+              <div class="badge mono" id="color2Hex">#6ad9ff</div>
+            </div>
+
+          </div>
+        </details>
+
+        <details class="section" data-ui="advancedOnly">
+          <summary>
+            <span>Motion</span>
+            <span class="meta">rotate • summon</span>
+          </summary>
+          <div class="sectionBody">
+
+            <div class="row">
+              <label>Animate</label>
+              <input id="animate" type="checkbox"/>
+              <div class="badge">use Speed</div>
+            </div>
+
+            <div class="row">
+              <label for="speed">Speed (deg/s)</label>
+              <input id="speed" type="range" min="-120" max="120" step="1" value="18"/>
+              <input id="speedN" type="number" min="-120" max="120" step="1" value="18"/>
+            </div>
+
+            <div class="row">
+              <label>Summoning</label>
+              <input id="summonAuto" type="checkbox"/>
+              <div class="badge">auto on regenerate</div>
+            </div>
+
+            <div class="row">
+              <label>Play Summon</label>
+              <button id="playSummon" type="button" class="miniBtn" style="flex:1;">Play</button>
+              <div class="badge">reveal</div>
+            </div>
+
+            <div class="row">
+              <label>Export Summon</label>
+              <button id="exportSummonGif" type="button" class="miniBtn">GIF</button>
+              <button id="exportSummonMp4" type="button" class="miniBtn">MP4</button>
+              <div class="badge">summon only</div>
+            </div>
+
+            <div class="row">
+              <label for="summonSpeed">Summon Speed</label>
+              <input id="summonSpeed" type="range" min="0.50" max="2.50" step="0.05" value="1.00"/>
+              <input id="summonSpeedN" type="number" min="0.50" max="2.50" step="0.05" value="1.00"/>
+            </div>
+
+          </div>
+        </details>
+
+        <details class="section" data-ui="advancedOnly">
+          <summary>
+            <span>Export Settings</span>
+            <span class="meta">fps • duration</span>
+          </summary>
+          <div class="sectionBody">
+
+            <div class="row">
+              <label for="gifFps">Export FPS</label>
+              <input id="gifFps" type="range" min="6" max="30" step="1" value="15"/>
+              <input id="gifFpsN" type="number" min="6" max="30" step="1" value="15"/>
+            </div>
+
+            <div class="row">
+              <label for="gifSeconds">Export Seconds</label>
+              <input id="gifSeconds" type="range" min="1" max="6" step="1" value="3"/>
+              <input id="gifSecondsN" type="number" min="1" max="6" step="1" value="3"/>
+            </div>
+
+          </div>
+        </details>
+
+        <details class="section" data-ui="advancedOnly">
+          <summary>
+            <span>Advanced / Technical</span>
+            <span class="meta">seed • layers</span>
+          </summary>
+          <div class="sectionBody">
+
+            <div class="row">
+              <label for="seed">Seed</label>
+              <input id="seed" type="number" value="1337" step="1" min="0"/>
+              <div class="badge">deterministic</div>
+            </div>
+
+            <!-- Advanced Options Toggle (Layer system + ring roles) -->
+            <div style="margin-top:10px;" data-ui="advancedOnly">
+              <button id="advancedToggleBtn" type="button" class="miniBtn" style="width:100%; display:flex; align-items:center; justify-content:space-between;">
+                <span>Advanced Options</span>
+                <span class="badge" id="advancedBadge">hidden</span>
+              </button>
+            </div>
+
+            <div id="advancedPanel" style="display:none; margin-top:10px;" data-ui="advancedOnly">
+
+              <div class="row">
+                <label for="ringRole">Ring Role (default)</label>
+                <select id="ringRole">
+                  <option value="structure">Structure</option>
+                  <option value="ornament">Ornament</option>
+                  <option value="glyph">Glyph</option>
+                  <option value="connector">Connector</option>
+                </select>
+                <div class="badge">layer</div>
+              </div>
+
+              <div class="historyHead" style="margin-top:14px; align-items:center;">
+                <h2>Layer System</h2>
+                <div class="badge">groups</div>
+              </div>
+              <p style="margin-top:6px; margin-bottom:10px;">
+                Toggle groups, pick color source, override stroke style, and set opacity per layer.
+              </p>
+
+              <div id="layerSystemUI"></div>
+
+            </div>
+
+          </div>
+        </details>
+</div>
 
       <div class="btns">
         <button id="regen" type="button">Regenerate</button>
@@ -597,9 +788,38 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
         <div class="foot" style="padding:0; margin-top:10px;">
           Tip: leave a ring text blank to use <span class="mono">Default Text</span>.
         </div>
-        <div class="historyHead">
+        
+        <details class="section" id="changelogSection" open>
+          <summary>
+            <span>What&apos;s New</span>
+            <span class="meta" id="changelogMeta">updates</span>
+          </summary>
+          <div class="sectionBody">
+            <div class="changelogBox" data-changelog-id="2026-02-22" id="changelogBox">
+              <div class="changelogTop">
+                <div class="tag"><span class="mono">v0.5.2</span> <span style="opacity:.75;">•</span> <span class="mono">2026-02-22</span></div>
+                <button type="button" class="miniBtn" id="dismissChangelog">Dismiss</button>
+              </div>
+              <ul class="changelogList" id="changelogList">
+                <li>UI is now grouped into sections, with a Simple/Advanced mode toggle.</li>
+                <li>Added an option to play a summoning animation and export it.</li>
+                <li>Advanced technical options are hidden by default to reduce overwhelm.</li>
+                <li>Text, center symbol, and history remain on the right panel.</li>
+                <li>Added a What's New section to the right panel for update notes.</li>
+                <li>Each Ringrole can now be configured with a custom colour.</li>
+                <li>Added even more templates.</li>
+              </ul>
+              <div class="foot" style="padding:0; margin-top:8px;">
+                Tip: you can still access all the advanced options, they're just tucked away until you need them.
+              </div>
+            </div>
+          </div>
+        </details>
+
+<div class="historyHead">
           <h2>History</h2>
           <div class="historyActions">
+            <button id="showChangelog" type="button" class="miniBtn" title="Show the What's New panel">What's New</button>
             <button id="saveHistory" type="button" class="miniBtn">Save snapshot</button>
             <button id="clearHistory" type="button" class="miniBtn">Clear</button>
           </div>
@@ -946,6 +1166,9 @@ async function restoreSnapshot(item){
   setAccentFromHex(p.color || el('color').value);
   setBackgroundGlowFromHex(el('color').value.toLowerCase());
   draw(angle);
+  if(el('summonAuto')?.checked && !el('animate').checked){
+    try{ await playSummon(); }catch(_e){}
+  }
 
   // restart anim if snapshot had it enabled
   if(p.animate){
@@ -1709,6 +1932,245 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
   ctx.restore();
 
   if(add>0.45) chords(innerR*0.78, 8 + Math.floor(dense*8), 3, colSub, lw*0.38, 0.38, rot+0.05);
+
+} else if(tpl===21){
+  // Chaos web: tangled chord web with jittered spokes
+  const n = Math.max(9, Math.min(36, k + 6));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+  ring(innerR*0.70, lw*0.55, colSub, 0.7);
+
+  // multiple chord layers, different step sizes
+  const steps = [2,3,4,5].slice(0, 2 + Math.floor(dense*2));
+  for(let s=0;s<steps.length;s++){
+    const step = steps[s];
+    chords(innerR*0.92, n, step, (s%2?colSub:colMain), lw*(0.50 - s*0.08), 0.42, rot + s*0.17);
+  }
+  if(add>0.35){
+    // jittered radial "cracks"
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = colSub;
+    ctx.lineWidth = lw*0.45;
+    for(let i=0;i<n;i++){
+      const a = rot + i*(Math.PI*2/n);
+      const j = (rng()-0.5)*0.18;
+      const r1 = innerR*(0.18 + rng()*0.08);
+      const r2 = innerR*(0.92 - rng()*0.08);
+      ctx.beginPath();
+      line(Math.cos(a+j)*r1, Math.sin(a+j)*r1, Math.cos(a-j*0.6)*r2, Math.sin(a-j*0.6)*r2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  if(add>0.70) orbs(innerR*0.92, n, lw*(2.2+dense*1.2), colMain, lw*0.40, 0.55, rot, false);
+
+} else if(tpl===22){
+  // Fractal ring: nested polygons + recursive star
+  const base = Math.max(5, Math.min(10, Math.floor(5 + symmetry*0.35)));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+
+  const layers = 3 + Math.floor(dense*4);
+  for(let i=0;i<layers;i++){
+    const t = i/Math.max(1,layers-1);
+    const rr = innerR*(0.82 - t*0.46);
+    const pts = base + (i%2);
+    stroke(()=>poly(0,0, rr, pts, rot + i*0.25), lw*(0.70 - t*0.30), (i%2?colSub:colMain), 0.80 - t*0.22);
+    if(add>0.40){
+      stroke(()=>star(0,0, rr*0.82, rr*(0.30+0.06*dense), pts, rot + i*0.25 + Math.PI/pts),
+        lw*(0.45 - t*0.18), (i%2?colMain:colSub), 0.55 - t*0.18);
+    }
+  }
+  if(add>0.55) ring(innerR*0.46, lw*0.60, colSub, 0.70);
+
+} else if(tpl===23){
+  // Tri-weave: interlaced triangles + knot chords
+  const n = Math.max(6, Math.min(18, k + 2));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+
+  const triR1 = innerR*0.80;
+  const triR2 = innerR*0.62;
+  stroke(()=>poly(0,0, triR1, 3, rot), lw*0.95, colMain, 0.85);
+  stroke(()=>poly(0,0, triR1, 3, rot+Math.PI), lw*0.95, colMain, 0.85);
+  stroke(()=>poly(0,0, triR2, 3, rot+Math.PI/6), lw*0.65, colSub, 0.75);
+  stroke(()=>poly(0,0, triR2, 3, rot+Math.PI+Math.PI/6), lw*0.65, colSub, 0.75);
+
+  const step = 2 + Math.floor(dense*3);
+  chords(innerR*0.92, n, step, colSub, lw*0.45, 0.42, rot+0.10);
+  if(add>0.55) chords(innerR*0.62, n, step+1, colMain, lw*0.35, 0.35, rot+0.22);
+  if(add>0.70) orbs(innerR*0.92, n, lw*2.2, colMain, lw*0.40, 0.55, rot, false);
+
+} else if(tpl===24){
+  // Radiant mesh: spokes + concentric rings + node arclets
+  const n = Math.max(10, Math.min(40, k + 8));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+  ring(innerR*0.74, lw*0.55, colSub, 0.70);
+  ring(innerR*0.56, lw*0.45, colMain, 0.55);
+
+  ctx.save();
+  ctx.globalAlpha = 0.65;
+  ctx.strokeStyle = colSub;
+  ctx.lineWidth = lw*0.45;
+  for(let i=0;i<n;i++){
+    const a = rot + i*(Math.PI*2/n);
+    ctx.beginPath();
+    line(Math.cos(a)*innerR*0.18, Math.sin(a)*innerR*0.18, Math.cos(a)*innerR*0.92, Math.sin(a)*innerR*0.92);
+    ctx.stroke();
+    if(add>0.55){
+      ctx.beginPath();
+      ctx.arc(Math.cos(a)*innerR*0.74, Math.sin(a)*innerR*0.74, innerR*0.06, a+0.5, a+2.2);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  if(add>0.35) orbs(innerR*0.92, n, lw*(2.0+dense), colMain, lw*0.35, 0.50, rot+0.04, false);
+
+} else if(tpl===25){
+  // Obsidian seal: sharp squares, diagonals, and inset "shards"
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+  stroke(()=>poly(0,0, innerR*0.80, 4, rot), lw*1.05, colMain, 0.85);
+  stroke(()=>poly(0,0, innerR*0.62, 4, rot+Math.PI/4), lw*0.70, colSub, 0.70);
+
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = colSub;
+  ctx.lineWidth = lw*0.50;
+  // diagonal shard lines
+  for(let i=0;i<8;i++){
+    const a = rot + i*(Math.PI/4);
+    const r1 = innerR*(0.24 + rng()*0.08);
+    const r2 = innerR*(0.84 - rng()*0.06);
+    ctx.beginPath();
+    line(Math.cos(a+0.05)*r1, Math.sin(a+0.05)*r1, Math.cos(a-0.02)*r2, Math.sin(a-0.02)*r2);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  if(add>0.55) chords(innerR*0.80, 12 + Math.floor(dense*10), 5, colMain, lw*0.32, 0.30, rot+0.08);
+
+} else if(tpl===26){
+  // Astral grid: constellation nodes + long connections
+  const n = Math.max(10, Math.min(26, k + 8));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+
+  // place nodes
+  const nodes = [];
+  for(let i=0;i<n;i++){
+    const a = rot + i*(Math.PI*2/n) + (rng()-0.5)*0.25;
+    const r = innerR*(0.55 + rng()*0.35);
+    nodes.push({x:Math.cos(a)*r, y:Math.sin(a)*r});
+  }
+
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = colSub;
+  ctx.lineWidth = lw*0.40;
+  // connect each node to a couple others
+  for(let i=0;i<n;i++){
+    const j1 = (i + 3 + Math.floor(rng()*6)) % n;
+    const j2 = (i + 7 + Math.floor(rng()*6)) % n;
+    ctx.beginPath(); line(nodes[i].x, nodes[i].y, nodes[j1].x, nodes[j1].y); ctx.stroke();
+    if(add>0.55){ ctx.beginPath(); line(nodes[i].x, nodes[i].y, nodes[j2].x, nodes[j2].y); ctx.stroke(); }
+  }
+  ctx.restore();
+
+  // nodes glow
+  ctx.save();
+  ctx.globalAlpha = 0.75;
+  ctx.fillStyle = colMain;
+  for(const p of nodes){
+    ctx.beginPath(); circle(p.x,p.y, lw*(1.6 + dense*0.8)); ctx.fill();
+  }
+  ctx.restore();
+
+  if(add>0.65) ring(innerR*0.58, lw*0.55, colSub, 0.65);
+
+} else if(tpl===27){
+  // Void bloom: spiral petals + inner eclipse ring
+  const petals = Math.max(7, Math.min(22, k + Math.floor(dense*8)));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+
+  ctx.save();
+  ctx.globalAlpha = 0.60;
+  ctx.strokeStyle = colSub;
+  ctx.lineWidth = lw*0.55;
+  for(let i=0;i<petals;i++){
+    const a = rot + i*(Math.PI*2/petals);
+    const rr = innerR*(0.36 + 0.10*Math.sin(i*1.7));
+    const x = Math.cos(a)*innerR*0.28;
+    const y = Math.sin(a)*innerR*0.28;
+    ctx.beginPath();
+    circle(x,y, rr);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // spiral chord halo
+  if(add>0.45){
+    const n = Math.max(9, Math.min(30, petals));
+    chords(innerR*0.92, n, 4, colMain, lw*0.38, 0.34, rot+0.15);
+    chords(innerR*0.92, n, 5, colSub, lw*0.32, 0.28, rot+0.33);
+  }
+  ring(innerR*0.48, lw*0.70, colSub, 0.75);
+
+} else if(tpl===28){
+  // Sigil nexus: hub-and-spoke with multi-orbit nodes
+  const n = Math.max(8, Math.min(32, k + 6));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+  ring(innerR*0.64, lw*0.55, colSub, 0.7);
+
+  ctx.save();
+  ctx.globalAlpha = 0.65;
+  ctx.strokeStyle = colMain;
+  ctx.lineWidth = lw*0.55;
+  for(let i=0;i<n;i++){
+    const a = rot + i*(Math.PI*2/n);
+    ctx.beginPath();
+    line(Math.cos(a)*innerR*0.12, Math.sin(a)*innerR*0.12, Math.cos(a)*innerR*0.92, Math.sin(a)*innerR*0.92);
+    ctx.stroke();
+    if(add>0.55){
+      ctx.beginPath();
+      ctx.arc(0,0, innerR*0.64, a-0.35, a+0.35);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  orbs(innerR*0.92, n, lw*(2.4+dense), colSub, lw*0.40, 0.60, rot, add>0.85);
+  if(add>0.65) orbs(innerR*0.64, Math.max(6, Math.floor(n*0.6)), lw*2.0, colMain, lw*0.35, 0.55, rot+0.18, false);
+
+} else if(tpl===29){
+  // Infinite lattice: alternating rings + offset hex grid illusion
+  const n = Math.max(6, Math.min(18, k + 4));
+  ring(innerR*0.92, lw*0.75, colMain, 0.9);
+  ring(innerR*0.78, lw*0.55, colSub, 0.70);
+  ring(innerR*0.64, lw*0.45, colMain, 0.55);
+
+  // two hexagons offset to form lattice
+  stroke(()=>poly(0,0, innerR*0.76, 6, rot), lw*0.70, colSub, 0.70);
+  stroke(()=>poly(0,0, innerR*0.58, 6, rot+Math.PI/6), lw*0.60, colMain, 0.70);
+
+  // connecting lattice lines
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = colSub;
+  ctx.lineWidth = lw*0.40;
+  for(let i=0;i<6;i++){
+    const a = rot + i*(Math.PI/3);
+    const a2 = a + Math.PI/6;
+    ctx.beginPath();
+    line(Math.cos(a)*innerR*0.58, Math.sin(a)*innerR*0.58, Math.cos(a2)*innerR*0.76, Math.sin(a2)*innerR*0.76);
+    ctx.stroke();
+    if(add>0.55){
+      ctx.beginPath();
+      line(Math.cos(a2)*innerR*0.58, Math.sin(a2)*innerR*0.58, Math.cos(a)*innerR*0.76, Math.sin(a)*innerR*0.76);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  if(add>0.65) chords(innerR*0.92, n*2, 3, colMain, lw*0.30, 0.28, rot+0.10);
+
+
 } else {
     // Complex orbit
     const n = Math.max(7, Math.min(12, k+3));
@@ -2155,6 +2617,7 @@ el('selectNone').addEventListener('click', ()=>{
 
 /* ---------------- Main draw ---------------- */
 function draw(rotAngle=0, opts=null){
+  const maxPhase = (opts && Number.isFinite(opts.maxPhase)) ? opts.maxPhase : 3;
   const seed = (Number(el('seed').value) >>> 0);
   const rng = mulberry32(seed);
 
@@ -2235,31 +2698,32 @@ function draw(rotAngle=0, opts=null){
     });
   }
 
+  
   const tpl = (tplSel >= 0) ? tplSel : randInt(rng, 0, 29);
-  // template core is routed as Structure by default (still affected by Structure layer settings)
+
+  // Phase 0: rings are drawn above (outer + ring stack)
+  // Phase 1+: template / interior details
   let coreR = R*0.22;
-  applyLayer("structure", ()=>{
-    const c1 = layerColor(colMain, colSub);
-    const c2 = colSub;
-    coreR = drawSealTemplate(tpl, rng, R, ringGap, c1, c2, strokeW, complexity, symmetry, interior);
-  });
-
-  // central symbol
-  applyLayer("center", ()=>{
-    const c1 = layerColor(colMain, colSub);
-    const c2 = colSub;
-    drawCentralSymbol(rng, coreR, c1, c2, strokeW, centerState.mode, centerState.text, Number(centerState.size ?? 110));
-  });
-
-  // optional arcane embellishment
-  if(style === "arcane" && interior >= 70){
-    const n = Math.max(8, Math.min(14, symmetry+2));
-    const r = R - ringGap*1.15;
-    applyLayer("ornament", ()=>{
-      const c = layerColor(colMain, colSub);
-      chords(r, n, 3, c, strokeW*0.45, 0.35, randRange(rng,0,Math.PI*2));
+  if(maxPhase >= 1){
+    // template core is routed as Structure by default (still affected by Structure layer settings)
+    applyLayer("structure", ()=>{
+      const c1 = layerColor(colMain, colSub);
+      const c2 = colSub;
+      coreR = drawSealTemplate(tpl, rng, R, ringGap, c1, c2, strokeW, complexity, symmetry, interior);
     });
+
+    // optional arcane embellishment (counts as "details")
+    if(style === "arcane" && interior >= 70){
+      const n = Math.max(8, Math.min(14, symmetry+2));
+      const r = R - ringGap*1.15;
+      applyLayer("ornament", ()=>{
+        const c = layerColor(colMain, colSub);
+        chords(r, n, 3, c, strokeW*0.45, 0.35, randRange(rng,0,Math.PI*2));
+      });
+    }
   }
+
+  // Phase 2+: text comes after details
 
   // text helpers
   function defaultPhrase(){
@@ -2277,6 +2741,7 @@ function draw(rotAngle=0, opts=null){
     return defaultPhrase();
   }
   function drawTextAtRadiusWithKey(textR, key){
+    if(maxPhase < 2) return;
     if(ringTextMode === "none") return;
     const role = normalizeRole(ringRoleState[key] || "text");
     applyLayer(role, ()=>{
@@ -2304,6 +2769,15 @@ function draw(rotAngle=0, opts=null){
     drawTextAtRadiusWithKey(ringRadii[i-1] + ringGap*0.10, key);
   }
 
+  // Phase 3+: center symbol comes last (after rings, details, and text)
+  if(maxPhase >= 3){
+    applyLayer("center", ()=>{
+      const c1 = layerColor(colMain, colSub);
+      const c2 = colSub;
+      drawCentralSymbol(rng, coreR, c1, c2, strokeW, centerState.mode, centerState.text, Number(centerState.size ?? 110));
+    });
+  }
+
   ctx.restore();
   el('meta').textContent = `seed=${seed} · tpl=${tpl} · rings=${ringsN} · sym=${symmetry} · stroke=${ACTIVE_STROKE_STYLE} · text=${ringTextMode}`;
 }
@@ -2328,6 +2802,535 @@ function stopAnim(){
   if(raf){ cancelAnimationFrame(raf); raf = null; }
 }
 
+
+/* ---------------- Summoning animation ---------------- */
+let summonRaf = null;
+let summonPlaying = false;
+
+// lightweight procedural grain for "magical" texture
+let _noiseTile = null;
+function getNoiseTile(){
+  if(_noiseTile) return _noiseTile;
+  const n = document.createElement('canvas');
+  const s = 256;
+  n.width = n.height = s;
+  const nctx = n.getContext('2d', {alpha:true});
+  const img = nctx.createImageData(s, s);
+  const d = img.data;
+  // sparse bright specks + film grain (a bit stronger so it feels "drawn")
+  for(let i=0;i<d.length;i+=4){
+    const g = Math.random();
+    const speck = (g > 0.993) ? 1 : 0;
+    // push midtones slightly to avoid looking like pure static
+    const base = Math.random();
+    const v = speck ? 255 : Math.max(0, Math.min(255, (base*255) * (0.75 + 0.55*Math.random())));
+    d[i] = d[i+1] = d[i+2] = v;
+    d[i+3] = speck ? (130 + Math.random()*110) : (18 + Math.random()*42);
+  }
+  nctx.putImageData(img, 0, 0);
+
+  // add a few very subtle "paper" streaks
+  nctx.save();
+  nctx.globalAlpha = 0.08;
+  nctx.globalCompositeOperation = 'overlay';
+  for(let i=0;i<28;i++){
+    const y = Math.random()*s;
+    const h = 1 + Math.random()*2;
+    nctx.fillStyle = '#ffffff';
+    nctx.fillRect(0, y, s, h);
+  }
+  nctx.restore();
+  _noiseTile = n;
+  return _noiseTile;
+}
+
+function clipAnnulusPie(cx, cy, r, thickness, p){
+  const start = -Math.PI/2;
+  const end = start + (Math.PI*2*Math.max(0,Math.min(1,p)));
+  const ro = Math.max(0, r + thickness);
+  const ri = Math.max(0, r - thickness);
+  ctx.beginPath();
+  ctx.arc(cx, cy, ro, start, end, false);
+  ctx.arc(cx, cy, ri, end, start, true);
+  ctx.closePath();
+}
+
+function getSummonRingRadii(){
+  // mirror ring geometry from draw()
+  const ringsN = Number(el('rings').value);
+  const complexity = Number(el('complex').value);
+  const R = canvas.width * 0.44;
+  const ringGap = R / (ringsN + 2);
+  const extraRings = (complexity>=12 ? 1 : 0) + (complexity>=16 ? 1 : 0);
+  const totalRings = Math.min(10, ringsN + extraRings);
+  const radii = [];
+  // outer boundary rings first (two strokes)
+  radii.push(R*1.02);
+  radii.push(R*0.995);
+  for(let i=0;i<totalRings;i++){
+    const r = R - (i+1)*ringGap;
+    if(r < R*0.18) break;
+    radii.push(r);
+    if(i%2===0) radii.push(r - ringGap*0.18);
+  }
+  return {R, ringGap, radii};
+}
+
+function easeOutCubic(t){ t=Math.max(0,Math.min(1,t)); return 1 - Math.pow(1-t,3); }
+function easeOutBack(t){
+  t=Math.max(0,Math.min(1,t));
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2);
+}
+function clipPie(cx, cy, r, p){
+  const start = -Math.PI/2;
+  const end = start + (Math.PI*2*Math.max(0,Math.min(1,p)));
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, r, start, end, false);
+  ctx.closePath();
+}
+
+async function snapshotBitmap(maxPhase, rotAngle){
+  // Draw the requested phase onto the main canvas, then snapshot it into an ImageBitmap (fast) or Image fallback.
+  // Important for summoning reveal: snapshot with a transparent background so unrevealed areas stay black.
+  draw(rotAngle, {maxPhase, transparent:true});
+  // ensure the browser had a chance to flush the draw before snapshot (especially on Safari)
+  await new Promise(r=>requestAnimationFrame(()=>r()));
+  if('createImageBitmap' in window){
+    try{ return await createImageBitmap(canvas); }catch(_e){}
+  }
+  // Fallback: decode dataURL
+  const url = canvas.toDataURL("image/png");
+  const img = new Image();
+  img.src = url;
+  try{ await img.decode(); }catch(_e){ /* ignore */ }
+  return img;
+}
+
+async function playSummon(){
+  if(summonPlaying) return;
+  summonPlaying = true;
+
+  const wasAnimating = !!el('animate').checked;
+  if(wasAnimating){ el('animate').checked = false; stopAnim(); }
+
+  statusEl.textContent = "Preparing summoning…";
+
+  const baseAngle = angle || 0;
+
+  // Capture phased renders (rings -> details -> text -> full (incl. center))
+  const ringsBmp   = await snapshotBitmap(0, baseAngle);
+  const detailBmp  = await snapshotBitmap(1, baseAngle);
+  const textBmp    = await snapshotBitmap(2, baseAngle);
+  const fullBmp    = await snapshotBitmap(3, baseAngle);
+
+  // During summon, keep the stage black so unrevealed parts are truly black.
+  const bg = "#000000";
+  ACTIVE_BG = bg;
+  TRANSPARENT_BG = false;
+
+  const {R, ringGap, radii: summonRadii} = getSummonRingRadii();
+  const ringCount = summonRadii.length;
+  const sp = Math.max(0.25, Number(el('summonSpeed')?.value || 1));
+  const ringDelay = 110 / sp;       // ms between rings
+  const ringSpan  = 520 / sp;       // ms per ring draw
+  const ringsTotal = ringDelay*(ringCount-1) + ringSpan;
+  const detailsSpan = 720 / sp;
+  const textSpan = 420 / sp;
+  const centerSpan = 360 / sp;
+
+  const start = performance.now();
+  const dur = ringsTotal + detailsSpan + textSpan + centerSpan; // ms
+  const cx = canvas.width/2, cy = canvas.height/2;
+  const wipeR = canvas.width * 0.60;
+  const noise = getNoiseTile();
+
+  function frame(ts){
+    const t = Math.max(0, Math.min(1, (ts - start) / dur));
+
+    // timeline (absolute ms)
+    const ms = (ts - start);
+    const ringsDoneAt = ringsTotal;
+    const detailsStart = Math.max(0, ringsDoneAt - 140);
+    const textStart = detailsStart + detailsSpan - 220;
+    const centerStart = textStart + textSpan - 140;
+
+    const pD = easeOutCubic(Math.min(1, Math.max(0, (ms-detailsStart)/detailsSpan)));
+    const pT = easeOutCubic(Math.min(1, Math.max(0, (ms-textStart)/textSpan)));
+    const pC = easeOutBack (Math.min(1, Math.max(0, (ms-centerStart)/centerSpan)));
+
+    clear(bg);
+
+    // soft "magic bloom"
+    const flick = 0.5 + 0.5*Math.sin(ts*0.018);
+    ctx.save();
+    ctx.globalAlpha = 0.10 + 0.10*flick*(1-t);
+    ctx.filter = `blur(${8 + 10*(1-t)}px)`;
+    ctx.drawImage(fullBmp, 0, 0);
+    ctx.restore();
+
+    // Rings: each ring draws in sequence with a small delay
+    ctx.save();
+    ctx.globalAlpha = 0.98;
+    for(let i=0;i<summonRadii.length;i++){
+      const local = (ms - i*ringDelay) / ringSpan;
+      const p = easeOutCubic(Math.max(0, Math.min(1, local)));
+      if(p <= 0) continue;
+      // thickness roughly maps to ring visual weight
+      const thick = (i < 2) ? (ringGap*0.11) : (ringGap*0.10);
+      ctx.save();
+      ctx.beginPath();
+      clipAnnulusPie(cx, cy, summonRadii[i], thick, p);
+      ctx.clip();
+      ctx.drawImage(ringsBmp, 0, 0);
+      // a subtle glow "spark" riding the draw head
+      const headAng = -Math.PI/2 + Math.PI*2*p;
+      const hx = cx + Math.cos(headAng) * summonRadii[i];
+      const hy = cy + Math.sin(headAng) * summonRadii[i];
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.10 + 0.22*(1-Math.abs(0.5-p)*2);
+      ctx.filter = `blur(${6 + 8*(1-p)}px)`;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 10 + 12*(1-p), 0, Math.PI*2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // Details: expand from center with a gentle fade
+    ctx.save();
+    const rr = wipeR * (0.15 + 0.85*pD);
+    ctx.globalAlpha = 0.25 + 0.75*pD;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rr, 0, Math.PI*2);
+    ctx.clip();
+    ctx.drawImage(detailBmp, 0, 0);
+    ctx.restore();
+
+    // Text: fade + tiny shimmer
+    ctx.save();
+    ctx.globalAlpha = (0.15 + 0.85*pT) * (0.92 + 0.08*flick);
+    ctx.drawImage(textBmp, 0, 0);
+    ctx.restore();
+
+    // Center: pop in at the end (uses the full render so it matches exactly)
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, pC));
+    ctx.drawImage(fullBmp, 0, 0);
+    ctx.restore();
+
+    // Magical noise/grain overlay + tiny drifting offset so it feels "alive" and a bit "drawn"
+    ctx.save();
+    const nA = 0.11 + 0.09*(1-t) + 0.04*(0.5 + 0.5*Math.sin(ts*0.09));
+    ctx.globalAlpha = nA;
+    ctx.globalCompositeOperation = 'overlay';
+    const scale = canvas.width / noise.width;
+    const ox = (Math.sin(ts*0.0017) * 24) % noise.width;
+    const oy = (Math.cos(ts*0.0013) * 24) % noise.height;
+    // tile twice to cover fully even with offsets
+    for(let tx=-1; tx<=1; tx++){
+      for(let ty=-1; ty<=1; ty++){
+        ctx.drawImage(noise, (tx*noise.width - ox)*scale, (ty*noise.height - oy)*scale, noise.width*scale, noise.height*scale);
+      }
+    }
+    ctx.restore();
+
+    // a second, subtler pass to add "graphite" depth
+    ctx.save();
+    ctx.globalAlpha = 0.06 + 0.05*(1-t);
+    ctx.globalCompositeOperation = 'multiply';
+    const scale2 = canvas.width / noise.width;
+    const ox2 = (Math.sin(ts*0.0011) * 18) % noise.width;
+    const oy2 = (Math.cos(ts*0.0019) * 18) % noise.height;
+    for(let tx=-1; tx<=1; tx++){
+      for(let ty=-1; ty<=1; ty++){
+        ctx.drawImage(noise, (tx*noise.width - ox2)*scale2, (ty*noise.height - oy2)*scale2, noise.width*scale2, noise.height*scale2);
+      }
+    }
+    ctx.restore();
+
+    statusEl.textContent = (t < 1) ? "Summoning…" : "Summon complete.";
+
+    if(t < 1){
+      summonRaf = requestAnimationFrame(frame);
+    }else{
+      summonRaf = null;
+      summonPlaying = false;
+
+      // restore normal preview (static)
+      draw(angle);
+
+      // if user had rotation animation enabled, resume it
+      if(wasAnimating){ el('animate').checked = true; startAnim(); }
+    }
+  }
+
+  if(summonRaf) cancelAnimationFrame(summonRaf);
+  summonRaf = requestAnimationFrame(frame);
+}
+
+/* ---------------- Summon render helper (for exports) ---------------- */
+function computeSummonTiming(){
+  const {R, ringGap, radii} = getSummonRingRadii();
+  const sp = Math.max(0.25, Number(el('summonSpeed')?.value || 1));
+  const ringDelay = 110 / sp;       // ms between rings
+  const ringSpan  = 520 / sp;       // ms per ring draw
+  const ringsTotal = ringDelay*(radii.length-1) + ringSpan;
+  const detailsSpan = 720 / sp;
+  const textSpan = 420 / sp;
+  const centerSpan = 360 / sp;
+  const dur = ringsTotal + detailsSpan + textSpan + centerSpan;
+  return { R, ringGap, radii, sp, ringDelay, ringSpan, ringsTotal, detailsSpan, textSpan, centerSpan, dur };
+}
+
+function summonDrawTo(ctxT, W, H, ms, assets, timing){
+  // Render one summon frame into the provided context.
+  const cx = W/2, cy = H/2;
+  const bg = '#000000';
+  ctxT.setTransform(1,0,0,1,0,0);
+  ctxT.clearRect(0,0,W,H);
+  ctxT.fillStyle = bg;
+  ctxT.fillRect(0,0,W,H);
+
+  const { ringGap, radii, ringDelay, ringSpan, ringsTotal, detailsSpan, textSpan, centerSpan, dur } = timing;
+  const t = Math.max(0, Math.min(1, ms / dur));
+
+  const ringsDoneAt = ringsTotal;
+  const detailsStart = Math.max(0, ringsDoneAt - 140);
+  const textStart = detailsStart + detailsSpan - 220;
+  const centerStart = textStart + textSpan - 140;
+
+  const pD = easeOutCubic(Math.min(1, Math.max(0, (ms-detailsStart)/detailsSpan)));
+  const pT = easeOutCubic(Math.min(1, Math.max(0, (ms-textStart)/textSpan)));
+  const pC = easeOutBack (Math.min(1, Math.max(0, (ms-centerStart)/centerSpan)));
+
+  // scale helpers from main canvas space -> target space
+  const s = W / canvas.width;
+  const wipeR = canvas.width * 0.60 * s;
+  const noise = getNoiseTile();
+
+  // soft bloom (slight, fades)
+  const flick = 0.5 + 0.5*Math.sin(ms*0.018);
+  ctxT.save();
+  ctxT.globalAlpha = 0.10 + 0.10*flick*(1-t);
+  ctxT.filter = `blur(${8 + 10*(1-t)}px)`;
+  ctxT.drawImage(assets.full, 0,0, canvas.width*s, canvas.height*s);
+  ctxT.restore();
+
+  // rings (sequential)
+  ctxT.save();
+  ctxT.globalAlpha = 0.98;
+  for(let i=0;i<radii.length;i++){
+    const local = (ms - i*ringDelay) / ringSpan;
+    const p = easeOutCubic(Math.max(0, Math.min(1, local)));
+    if(p <= 0) continue;
+    const thick = (i < 2) ? (ringGap*0.11*s) : (ringGap*0.10*s);
+    const r = radii[i]*s;
+
+    ctxT.save();
+    // clip annulus pie
+    const start = -Math.PI/2;
+    const end = start + (Math.PI*2*Math.max(0,Math.min(1,p)));
+    const ro = Math.max(0, r + thick);
+    const ri = Math.max(0, r - thick);
+    ctxT.beginPath();
+    ctxT.arc(cx, cy, ro, start, end, false);
+    ctxT.arc(cx, cy, ri, end, start, true);
+    ctxT.closePath();
+    ctxT.clip();
+    ctxT.drawImage(assets.rings, 0,0, canvas.width*s, canvas.height*s);
+
+    // spark head
+    const headAng = -Math.PI/2 + Math.PI*2*p;
+    const hx = cx + Math.cos(headAng) * r;
+    const hy = cy + Math.sin(headAng) * r;
+    ctxT.globalCompositeOperation = 'lighter';
+    ctxT.globalAlpha = 0.10 + 0.22*(1-Math.abs(0.5-p)*2);
+    ctxT.filter = `blur(${6 + 8*(1-p)}px)`;
+    ctxT.beginPath();
+    ctxT.arc(hx, hy, 10 + 12*(1-p), 0, Math.PI*2);
+    ctxT.fillStyle = '#ffffff';
+    ctxT.fill();
+    ctxT.restore();
+  }
+  ctxT.restore();
+
+  // details (center expand)
+  ctxT.save();
+  const rr = wipeR * (0.15 + 0.85*pD);
+  ctxT.globalAlpha = 0.25 + 0.75*pD;
+  ctxT.beginPath();
+  ctxT.arc(cx, cy, rr, 0, Math.PI*2);
+  ctxT.clip();
+  ctxT.drawImage(assets.detail, 0,0, canvas.width*s, canvas.height*s);
+  ctxT.restore();
+
+  // text
+  ctxT.save();
+  ctxT.globalAlpha = (0.15 + 0.85*pT) * (0.92 + 0.08*flick);
+  ctxT.drawImage(assets.text, 0,0, canvas.width*s, canvas.height*s);
+  ctxT.restore();
+
+  // center pop (full)
+  ctxT.save();
+  ctxT.globalAlpha = Math.max(0, Math.min(1, pC));
+  ctxT.drawImage(assets.full, 0,0, canvas.width*s, canvas.height*s);
+  ctxT.restore();
+
+  // noise overlay (a little stronger while summoning)
+  ctxT.save();
+  const nA = 0.14 + 0.10*(1-t) + 0.05*(0.5 + 0.5*Math.sin(ms*0.09));
+  ctxT.globalAlpha = nA;
+  ctxT.globalCompositeOperation = 'overlay';
+  const scale = W / noise.width;
+  const ox = (Math.sin(ms*0.0017) * 24) % noise.width;
+  const oy = (Math.cos(ms*0.0013) * 24) % noise.height;
+  for(let tx=-1; tx<=1; tx++){
+    for(let ty=-1; ty<=1; ty++){
+      ctxT.drawImage(noise, (tx*noise.width - ox)*scale, (ty*noise.height - oy)*scale, noise.width*scale, noise.height*scale);
+    }
+  }
+  ctxT.restore();
+
+  ctxT.save();
+  ctxT.globalAlpha = 0.08 + 0.06*(1-t);
+  ctxT.globalCompositeOperation = 'multiply';
+  const ox2 = (Math.sin(ms*0.0011) * 18) % noise.width;
+  const oy2 = (Math.cos(ms*0.0019) * 18) % noise.height;
+  for(let tx=-1; tx<=1; tx++){
+    for(let ty=-1; ty<=1; ty++){
+      ctxT.drawImage(noise, (tx*noise.width - ox2)*scale, (ty*noise.height - oy2)*scale, noise.width*scale, noise.height*scale);
+    }
+  }
+  ctxT.restore();
+}
+
+async function buildSummonAssets(baseAngle){
+  const ringsBmp   = await snapshotBitmap(0, baseAngle);
+  const detailBmp  = await snapshotBitmap(1, baseAngle);
+  const textBmp    = await snapshotBitmap(2, baseAngle);
+  const fullBmp    = await snapshotBitmap(3, baseAngle);
+  return { rings:ringsBmp, detail:detailBmp, text:textBmp, full:fullBmp };
+}
+
+/* ---------------- Export Summon (GIF/MP4) ---------------- */
+async function exportSummonGif(){
+  try{
+    statusEl.textContent = "Preparing summon GIF…";
+    const fps = Number(el('gifFps').value);
+    const baseAngle = angle || 0;
+
+    const wasAnimating = !!el('animate').checked;
+    if(wasAnimating) { el('animate').checked = false; stopAnim(); }
+
+    // build assets + timing
+    const assets = await buildSummonAssets(baseAngle);
+    const timing = computeSummonTiming();
+    const seconds = timing.dur / 1000;
+    const framesCount = Math.max(2, Math.ceil(seconds * fps));
+
+    const W = 512, H = 512;
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const offCtx = off.getContext('2d');
+
+    const frameData = [];
+    for(let i=0;i<framesCount;i++){
+      const ms = (i / (framesCount-1)) * timing.dur;
+      offCtx.setTransform(1,0,0,1,0,0);
+      offCtx.clearRect(0,0,W,H);
+      summonDrawTo(offCtx, W, H, ms, assets, timing);
+      frameData.push(offCtx.getImageData(0,0,W,H));
+      statusEl.textContent = `Rendering summon GIF… ${i+1}/${framesCount}`;
+      await new Promise(r=>setTimeout(r, 0));
+    }
+
+    const gifBytes = buildGIF(frameData, W, H, fps);
+    if(!(gifBytes && gifBytes.length > 6 && gifBytes[0]===71 && gifBytes[1]===73 && gifBytes[2]===70)){
+      throw new Error('GIF encoder produced invalid output.');
+    }
+    const blob = new Blob([gifBytes], {type:"image/gif"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.download = `sigil_${el('seed').value}_summon.gif`;
+    a.href = url;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 15000);
+    statusEl.textContent = "Summon GIF exported.";
+
+    // restore
+    draw(angle);
+    if(wasAnimating){ el('animate').checked = true; startAnim(); }
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = "Summon GIF export failed (see console).";
+  }
+}
+
+async function exportSummonVideo(desiredExt){
+  const fps = Number(el('gifFps').value);
+  const preferMp4 = (desiredExt === 'mp4');
+  const mime = pickVideoMime(preferMp4);
+  if(!mime){
+    statusEl.textContent = "Video export not supported in this browser.";
+    alert("Your browser doesn't support MediaRecorder export for this format. Try another browser.");
+    return;
+  }
+  const actualExt = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+  statusEl.textContent = (desiredExt === 'mp4' && actualExt !== 'mp4')
+    ? "MP4 not supported here — exporting WebM instead."
+    : `Recording summon ${actualExt.toUpperCase()}…`;
+
+  const wasAnimating = !!el('animate').checked;
+  if(wasAnimating) { el('animate').checked = false; stopAnim(); }
+
+  const baseAngle = angle || 0;
+  const assets = await buildSummonAssets(baseAngle);
+  const timing = computeSummonTiming();
+  const seconds = timing.dur / 1000;
+  const framesCount = Math.max(2, Math.ceil(seconds * fps));
+
+  // record from an offscreen canvas so we don't mess with preview
+  const W = 512, H = 512;
+  const off = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const offCtx = off.getContext('2d');
+  const stream = off.captureStream(fps);
+
+  const chunks = [];
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+  rec.ondataavailable = (e)=>{ if(e.data && e.data.size) chunks.push(e.data); };
+
+  rec.start();
+  try{
+    for(let i=0;i<framesCount;i++){
+      const ms = (i / (framesCount-1)) * timing.dur;
+      summonDrawTo(offCtx, W, H, ms, assets, timing);
+      statusEl.textContent = `Recording summon ${actualExt.toUpperCase()}… ${i+1}/${framesCount}`;
+      await new Promise(r=>setTimeout(r, Math.round(1000/fps)));
+    }
+  }finally{
+    rec.stop();
+  }
+  await new Promise(res=>{ rec.onstop = ()=>res(); });
+
+  const blob = new Blob(chunks, { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = `sigil_${el('seed').value}_summon.${actualExt}`;
+  a.href = url;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 20000);
+  statusEl.textContent = `Summon ${actualExt.toUpperCase()} exported.`;
+
+  // restore
+  draw(angle);
+  if(wasAnimating){ el('animate').checked = true; startAnim(); }
+}
+
 /* ---------------- Params & buttons ---------------- */
 function onParamsChanged(){
   try{ setBackgroundGlowFromHex(el('color').value.toLowerCase()); }catch(_e){}
@@ -2347,6 +3350,7 @@ bindPair('symmetry','symmetryN', onParamsChanged);
 bindPair('stroke','strokeN', onParamsChanged);
 bindPair('glow','glowN', onParamsChanged);
 bindPair('speed','speedN', ()=>{});
+bindPair('summonSpeed','summonSpeedN', ()=>{});
 bindPair('gifFps','gifFpsN', null);
 bindPair('gifSeconds','gifSecondsN', null);
 
@@ -2361,8 +3365,16 @@ el('animate').addEventListener('change', ()=>{
   else { stopAnim(); draw(angle); }
 });
 
-el('regen').addEventListener('click', ()=>{ draw(angle); });
-el('randomSeed').addEventListener('click', ()=>{ el('seed').value = Math.floor(Math.random()*1e9); onParamsChanged(); try{ pushHistory(currentSnapshot()); }catch(_e){} });
+el('regen').addEventListener('click', ()=>{
+  if(el('summonAuto')?.checked && !el('animate').checked) playSummon();
+  else draw(angle);
+});
+el('randomSeed').addEventListener('click', ()=>{
+  el('seed').value = Math.floor(Math.random()*1e9);
+  onParamsChanged();
+  if(el('summonAuto')?.checked && !el('animate').checked) playSummon();
+  try{ pushHistory(currentSnapshot()); }catch(_e){}
+});
 el('toggleBg').addEventListener('click', ()=>{ darkBg = !darkBg; draw(angle); });
 
 el('exportPng').addEventListener('click', ()=>{
@@ -2721,6 +3733,93 @@ el('fontUpload').addEventListener('change', async (e)=>{
   }
   e.target.value = '';
 });
+
+el('playSummon')?.addEventListener('click', ()=>{ playSummon(); });
+
+el('exportSummonGif')?.addEventListener('click', ()=>{ exportSummonGif(); });
+el('exportSummonMp4')?.addEventListener('click', async ()=>{
+  try{ await exportSummonVideo('mp4'); }
+  catch(err){ console.error(err); statusEl.textContent = (err?.message)||"Summon video export failed."; }
+});
+
+
+// UI mode: Simple vs Advanced (hides advanced controls to reduce overwhelm)
+(function(){
+  const btnSimple = document.getElementById('btnSimple');
+  const btnAdvanced = document.getElementById('btnAdvanced');
+
+  function setMode(mode){
+    const isAdvanced = (mode === 'advanced');
+    if(btnSimple) btnSimple.classList.toggle('active', !isAdvanced);
+    if(btnAdvanced) btnAdvanced.classList.toggle('active', isAdvanced);
+
+    document.querySelectorAll('[data-ui="advancedOnly"]').forEach(el=>{
+      el.setAttribute('data-hidden', isAdvanced ? '0' : '1');
+    });
+    document.querySelectorAll('[data-ui="simpleOnly"]').forEach(el=>{
+      el.setAttribute('data-hidden', isAdvanced ? '1' : '0');
+    });
+
+    // If the advanced panel is open but we're switching to Simple, ensure it's hidden.
+    if(!isAdvanced){
+      const advPanel = document.getElementById('advancedPanel');
+      const advBadge = document.getElementById('advancedBadge');
+      if(advPanel){ advPanel.style.display = "none"; }
+      if(advBadge){ advBadge.textContent = "hidden"; }
+    }
+
+    try{ localStorage.setItem('sigil_ui_mode', mode); }catch(_e){}
+  }
+
+  if(btnSimple) btnSimple.addEventListener('click', ()=>setMode('simple'));
+  if(btnAdvanced) btnAdvanced.addEventListener('click', ()=>setMode('advanced'));
+
+  let saved = 'simple';
+  try{ saved = localStorage.getItem('sigil_ui_mode') || 'simple'; }catch(_e){}
+  setMode(saved);
+
+})(); // end UI mode IIFE
+
+// Changelog: dismiss per user until changelog id changes
+(function(){
+  const box = document.getElementById('changelogBox');
+  const section = document.getElementById('changelogSection');
+  const btn = document.getElementById('dismissChangelog');
+  const showBtn = document.getElementById('showChangelog');
+  if(!box || !section || !btn) return;
+
+  const id = box.getAttribute('data-changelog-id') || 'v1';
+  const key = 'sigil_changelog_dismissed_id';
+  let dismissed = null;
+  try{ dismissed = localStorage.getItem(key); }catch(_e){}
+
+  const setVisible = (v)=>{
+    section.style.display = v ? '' : 'none';
+    if(v){
+      // ensure the details is open so the content is immediately readable
+      try{ section.open = true; }catch(_e){}
+      try{ section.scrollIntoView({behavior:'smooth', block:'start'}); }catch(_e){}
+    }
+  };
+
+  // If user previously dismissed this exact changelog id, hide it by default,
+  // but allow reopening via the "What's New" button.
+  if(dismissed === id) setVisible(false);
+
+  btn.addEventListener('click', ()=>{
+    setVisible(false);
+    try{ localStorage.setItem(key, id); }catch(_e){}
+  });
+
+  if(showBtn){
+    showBtn.addEventListener('click', ()=>{
+      // toggle visibility, without forcing users to clear storage
+      const isHidden = (section.style.display === 'none');
+      setVisible(isHidden);
+    });
+  }
+})();
+
 
 // Advanced options toggle (left: ring role + layer system, right: per-ring roles)
 (function(){
