@@ -93,8 +93,18 @@ select{min-width:160px;}
 input[type="text"]{flex:2; min-width:220px;}
 input[type="checkbox"]{transform: scale(1.15);}
 input[type="color"]{width:64px; height:36px; padding:0; border:none; background:transparent;}
-.badge{font-size:12px; color:var(--muted); white-space:nowrap;}
+.badge{font-size:12px; color:var(--muted); white-space:nowrap; flex:0 0 auto;}
 .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
+
+/* Right panel: allow compact rows to wrap so helper badges never overflow */
+.rightSide .row{flex-wrap:wrap; align-items:flex-start;}
+.rightSide label{min-width:110px; flex: 0 0 120px;}
+.rightSide select,
+.rightSide input[type="text"],
+.rightSide input[type="number"],
+.rightSide input[type="range"]{min-width:0; max-width:100%;}
+.rightSide .badge{white-space:normal;}
+.rightSide .sectionBody{overflow:hidden;}
 .btns{
   display:flex; flex-wrap:wrap; gap:10px;
   padding:0 16px 16px;
@@ -247,6 +257,17 @@ canvas{
 .inscRow select, .inscRow input[type="text"]{width:100%; min-width:0;}
 .inscRow .badge{justify-self:end;}
 .inscRow.range{grid-template-columns: 120px 1fr 92px;}
+/* ---------- Advanced panel overflow fixes ---------- */
+/* Allow advanced layer rows to wrap so right-side badges never get clipped */
+#advancedPanel .row{flex-wrap:wrap;}
+#advancedPanel label{min-width:96px;}
+#advancedPanel .badge{flex:0 0 auto;}
+
+/* Layer System header (checkbox + title + key) */
+.layerHead{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+.layerHeadLeft{display:flex; align-items:center; gap:10px; min-width:0; flex:1 1 auto;}
+.layerHeadTitle{min-width:0; overflow:hidden; text-overflow:ellipsis;}
+.layerKey{flex:0 0 auto;}
 @media (max-width: 1100px){
   .wrap{grid-template-columns: 1fr;}
   .sideCard{height:auto;}
@@ -456,12 +477,62 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
   display:none !important;
 }
 
+
+/* ---------- History item context menu (right-click) ---------- */
+.ctxMenu{
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(10,12,18,0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.55);
+  padding: 6px;
+}
+.ctxMenu .ctxTitle{
+  padding: 8px 10px 6px 10px;
+  font-weight: 700;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.ctxMenu .ctxItem{
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: inherit;
+  border-radius: 10px;
+  padding: 9px 10px;
+  cursor: pointer;
+  font-weight: 650;
+}
+.ctxMenu .ctxItem:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+}
+.ctxMenu .ctxItem.danger{
+  border-color: rgba(255,80,80,0.35);
+  background: rgba(255,80,80,0.10);
+}
+.ctxMenu .ctxItem.danger:hover{
+  background: rgba(255,80,80,0.14);
+}
+.ctxMenu .ctxHint{
+  padding: 6px 10px 2px 10px;
+  font-size: 11px;
+  opacity: 0.65;
+}
+
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Uncial+Antiqua&family=IM+Fell+English:ital@0;1&family=Cormorant+SC:wght@400;600;700&family=Germania+One&family=Pirata+One&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="wrap">
     <!-- LEFT: core controls -->
-    <div class="card sideCard">
+    <div class="card sideCard rightSide">
       <div class="panel">
         <h1>Procedural Sigil Generator</h1>
         <p>Clean geometric seals, optional glow. Control rings, complexity, interior density, symmetry, and export PNG/GIF/MP4 (MP4 falls back to WebM if needed).</p>
@@ -652,6 +723,9 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
               <button id="exportSummonGif" type="button" class="miniBtn">GIF</button>
               <button id="exportSummonMp4" type="button" class="miniBtn">MP4</button>
               <div class="badge">summon only</div>
+
+            <div class="row">
+            </div>
             </div>
 
             <div class="row">
@@ -746,8 +820,15 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
       </div>
 
       <div class="foot">
-        MP4 export depends on browser support; if unavailable it will export WebM instead.
-      </div>
+  MP4 export depends on browser support; if unavailable it will export WebM instead.
+  <br/>
+  <a href="https://github.com/Schlabbster/Magic-Sigil-Generator/issues"
+     target="_blank"
+     rel="noopener"
+     style="color: var(--accent); text-decoration: underline; cursor: pointer;">
+     Feedback / Report Bug / Request Feature
+  </a>
+</div>
     </div>
 
     <!-- CENTER: preview -->
@@ -765,61 +846,108 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
     <!-- RIGHT: text + inscriptions -->
     <div class="card sideCard">
       <div class="panel">
-        <h1 style="font-size:16px; margin-bottom:6px;">Text & Inscriptions</h1>
+        <div class="historyHead" style="margin-top:0; align-items:center;">
+          <h1 style="font-size:16px; margin:0;">Text &amp; Inscriptions</h1>
+          <div class="historyActions">
+            <button id="showChangelogTop" type="button" class="miniBtn" title="Show/Hide What&#39;s New">Updates</button>
+          </div>
+        </div>
         <p>Ring text on multiple rings (each can have its own phrase), custom fonts, and a central symbol inside the smallest ring.</p>
+<!-- Text options -->
+<details class="section" open>
+  <summary>
+    <span>Text Options</span>
+    <span class="meta">rings • fonts • rotate</span>
+  </summary>
+  <div class="sectionBody">
 
-        <div id="advancedRingRoles" style="display:none;">
-<div class="historyHead" style="margin-top:6px; align-items:center;">
-          <h2>Ring Roles</h2>
-          <div class="badge">per ring</div>
-        </div>
-        <p style="margin-top:6px; margin-bottom:10px;">Assign each ring to a role. That role routes the ring’s drawing into the corresponding layer group.</p>
-        <div id="ringRolesUI"></div>
-</div>
+    <div id="advancedRingRoles" style="display:none;">
+      <div class="historyHead" style="margin-top:6px; align-items:center;">
+        <h2>Ring Roles</h2>
+        <div class="badge">per ring</div>
+      </div>
+      <p style="margin-top:6px; margin-bottom:10px;">Assign each ring to a role. That role routes the ring’s drawing into the corresponding layer group.</p>
+      <div id="ringRolesUI"></div>
+    </div>
 
-        <div class="row">
-          <label for="ringTextMode">Ring Text Mode</label>
-          <select id="ringTextMode">
-            <option value="none">None</option>
-            <option value="runes">Runes (procedural)</option>
-            <option value="alpha">Alphabetic text</option>
-            <option value="glyphs">Glyph encoding</option>
-          </select>
-          <div class="badge">mode</div>
-        </div>
+    <div class="row">
+      <label for="ringTextMode">Ring Text Mode</label>
+      <select id="ringTextMode">
+        <option value="none">None</option>
+        <option value="runes">Runes (procedural)</option>
+        <option value="alpha">Alphabetic text</option>
+        <option value="glyphs">Glyph encoding</option>
+      </select>
+      <div class="badge">mode</div>
+    </div>
 
-        <div class="row wrap">
-          <label for="fontSelect">Font</label>
-          <select id="fontSelect"></select>
-          <div class="badge">text</div>
-        </div>
+    <div class="row wrap">
+      <label for="fontSelect">Font</label>
+      <select id="fontSelect"></select>
+      <div class="badge">text</div>
+    </div>
 
-        <div class="row wrap">
-          <label for="fontUpload">Custom Font</label>
-          <input id="fontUpload" type="file" accept=".ttf,.otf,.woff,.woff2"/>
-        </div>
+    <div class="row wrap">
+      <label for="fontUpload">Custom Font</label>
+      <input id="fontUpload" type="file" accept=".ttf,.otf,.woff,.woff2"/>
+    </div>
 
-        <!-- built dynamically to avoid DOM/layout bugs -->
-        <div id="inscriptionsUI"></div>
+    <!-- built dynamically (Rotate + Default Text) -->
+    <div id="textOptionsUI"></div>
 
-        <div class="row">
-          <label>Text Rings</label>
-          <div class="badge">pick multiple</div>
-        </div>
+    <div class="row">
+      <label>Text Rings</label>
+      <div class="badge">pick multiple</div>
+    </div>
 
-        <div id="ringTextList" style="display:flex; flex-direction:column; gap:8px; margin:6px 0 2px 0;"></div>
+    <div id="ringTextList" style="display:flex; flex-direction:column; gap:8px; margin:6px 0 2px 0;"></div>
 
-        <div class="row wrap" style="margin-top:6px;">
-          <label style="flex:1;">Bulk</label>
-          <button id="selectAll" type="button" class="miniBtn">Select all</button>
-          <button id="selectNone" type="button" class="miniBtn">Select none</button>
-        </div>
+    <div class="row wrap" style="margin-top:6px;">
+      <label style="flex:1;">Bulk</label>
+      <button id="selectAll" type="button" class="miniBtn">Select all</button>
+      <button id="selectNone" type="button" class="miniBtn">Select none</button>
+    </div>
 
-        <div class="foot" style="padding:0; margin-top:10px;">
-          Tip: leave a ring text blank to use <span class="mono">Default Text</span>.
-        </div>
-        
-        <details class="section" id="changelogSection" open>
+    <div class="foot" style="padding:0; margin-top:10px;">
+      Tip: leave a ring text blank to use <span class="mono">Default Text</span>.
+    </div>
+
+  </div>
+</details>
+
+<!-- Center options -->
+<details class="section">
+  <summary>
+    <span>Center Options</span>
+    <span class="meta">symbol • image</span>
+  </summary>
+  <div class="sectionBody">
+    <!-- built dynamically (Center Mode + its controls) -->
+    <div id="centerOptionsUI"></div>
+  </div>
+</details>
+
+<!-- History -->
+<details class="section" open>
+  <summary>
+    <span>History</span>
+    <span class="meta">snapshots</span>
+  </summary>
+  <div class="sectionBody">
+
+    <div class="row wrap" style="margin-top:0;">
+      <label style="flex:1;">Actions</label>
+      <button id="saveHistory" type="button" class="miniBtn">Save snapshot</button>
+      <button id="clearHistory" type="button" class="miniBtn">Clear</button>
+    </div>
+
+    <p style="margin-top:6px; margin-bottom:10px;">Click a thumbnail to restore that sigil (including text/center settings). Stored locally in your browser.</p>
+    <div id="historyGrid" class="historyGrid"></div>
+
+  </div>
+</details>
+
+<details class="section" id="changelogSection" open>
           <summary>
             <span>What&apos;s New</span>
             <span class="meta" id="changelogMeta">updates</span>
@@ -842,18 +970,15 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
           </div>
         </details>
 
-<div class="historyHead">
-          <h2>History</h2>
-          <div class="historyActions">
-            <button id="showChangelog" type="button" class="miniBtn" title="Show the What's New panel">What's New</button>
-            <button id="saveHistory" type="button" class="miniBtn">Save snapshot</button>
-            <button id="clearHistory" type="button" class="miniBtn">Clear</button>
-          </div>
-        </div>
-        <p style="margin-top:6px; margin-bottom:10px;">Click a thumbnail to restore that sigil (including text/center settings). Stored locally in your browser.</p>
-        <div id="historyGrid" class="historyGrid"></div>
-
-      </div>
+</div>
+<div class="foot">
+  <a href="https://ko-fi.com/schlabbie"
+     target="_blank"
+     rel="noopener"
+     style="color: var(--accent); text-decoration: underline; cursor: pointer; cursive;">
+     Buy me a coffee?
+  </a>
+</div>
     </div>
   </div>
 
@@ -1040,6 +1165,12 @@ function loadHistory(){
     const raw = localStorage.getItem(HISTORY_KEY);
     historyItems = raw ? JSON.parse(raw) : [];
     if(!Array.isArray(historyItems)) historyItems = [];
+    // backfill ids for older history entries
+    historyItems = historyItems.map(h=>{
+      if(!h || typeof h!=='object') return h;
+      if(h.id==null) h.id = (h.ts ?? Date.now()) + Math.floor(Math.random()*1000);
+      return h;
+    });
   }catch(_e){ historyItems = []; }
 }
 function saveHistory(){
@@ -1073,8 +1204,10 @@ function captureCenterImageDataURL(){
   }
 }
 function currentSnapshot(){
+  const _ts = Date.now();
   return {
-    ts: Date.now(),
+    id: _ts,
+    ts: _ts,
     thumb: makeThumbDataURL(),
     params: {
       style: el('style').value,
@@ -1217,7 +1350,7 @@ function renderHistory(){
   for(const item of historyItems){
     const wrap = document.createElement('div');
     wrap.className = "historyItem";
-    wrap.title = "Click to restore";
+    wrap.title = "Click to restore • Right-click to delete";
 
     const img = document.createElement('img');
     img.className = "historyThumb";
@@ -1238,11 +1371,176 @@ function renderHistory(){
     wrap.appendChild(img);
     wrap.appendChild(meta);
 
-    wrap.addEventListener('click', ()=>{ restoreSnapshot(item); });
+    wrap.addEventListener('contextmenu', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const id = _historyItemId(item);
+      if(id == null) return;
+      showHistoryCtxMenu(e.clientX, e.clientY, id);
+    });
+    wrap.addEventListener('click', ()=>{ restoreSnapshot(item); hideHistoryCtxMenu(); });
 
     grid.appendChild(wrap);
   }
 }
+
+
+/* -------- History right-click context menu -------- */
+let _ctxHistoryTargetId = null;
+
+function _historyItemId(item){
+  return (item && (item.id ?? item.ts)) ?? null;
+}
+
+function showHistoryCtxMenu(x, y, id){
+  const menu = el('historyCtxMenu');
+  if(!menu) return;
+  _ctxHistoryTargetId = id;
+
+  // make visible to measure
+  menu.style.display = 'block';
+  menu.setAttribute('aria-hidden','false');
+
+  // clamp to viewport
+  const pad = 8;
+  const rect = menu.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let left = x;
+  let top = y;
+
+  if(left + rect.width + pad > vw) left = Math.max(pad, vw - rect.width - pad);
+  if(top + rect.height + pad > vh) top = Math.max(pad, vh - rect.height - pad);
+  if(left < pad) left = pad;
+  if(top < pad) top = pad;
+
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+
+function hideHistoryCtxMenu(){
+  const menu = el('historyCtxMenu');
+  if(!menu) return;
+  menu.style.display = 'none';
+  menu.setAttribute('aria-hidden','true');
+  _ctxHistoryTargetId = null;
+}
+
+function deleteHistoryItemById(id){
+  const before = historyItems.length;
+  historyItems = historyItems.filter(h => (h && (h.id ?? h.ts)) !== id);
+  if(historyItems.length !== before){
+    saveHistory();
+    renderHistory();
+  }
+}
+
+(function bindHistoryContextMenu(){
+  function ready(fn){
+    if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn, {once:true});
+    else fn();
+  }
+
+  async function exportHistoryItemPNG(id){
+    const item = historyItems.find(h => (h && (h.id ?? h.ts)) === id);
+    if(!item){ return; }
+    const src = item.thumb; // may be webp or png; we'll re-encode as PNG
+    try{
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+      await img.decode();
+
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth || img.width;
+      c.height = img.naturalHeight || img.height;
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.drawImage(img, 0, 0);
+
+      const fname = `sigil_snapshot_${item.ts || Date.now()}.png`;
+      if(c.toBlob){
+        c.toBlob((blob)=>{
+          if(!blob) return;
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = fname;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
+        }, "image/png");
+      }else{
+        const a = document.createElement("a");
+        a.href = c.toDataURL("image/png");
+        a.download = fname;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    }catch(_e){
+      // fallback: download whatever thumb is
+      const a = document.createElement("a");
+      a.href = src;
+      a.download = `sigil_snapshot_${item.ts || Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  }
+
+  ready(()=>{
+    const menu = el('historyCtxMenu');
+    const delBtn = el('ctxDeleteHistory');
+    const expBtn = el('ctxExportHistoryPng');
+    if(!menu) return;
+
+    // prevent clicks inside menu from bubbling to document
+    menu.addEventListener('click', (e)=>{ e.stopPropagation(); });
+
+    if(delBtn){
+      delBtn.addEventListener('click', ()=>{
+        const id = _ctxHistoryTargetId;
+        if(id == null){ hideHistoryCtxMenu(); return; }
+        const ok = confirm("Delete this snapshot from history?");
+        if(ok) deleteHistoryItemById(id);
+        hideHistoryCtxMenu();
+      });
+    }
+
+    if(expBtn){
+      expBtn.addEventListener('click', async ()=>{
+        const id = _ctxHistoryTargetId;
+        if(id == null){ hideHistoryCtxMenu(); return; }
+        await exportHistoryItemPNG(id);
+        hideHistoryCtxMenu();
+      });
+    }
+
+    // close menu on outside click / scroll / resize / escape
+    document.addEventListener('click', (e)=>{
+      if(menu.style.display !== 'block') return;
+      if(menu.contains(e.target)) return;
+      hideHistoryCtxMenu();
+    }, true);
+
+    document.addEventListener('contextmenu', (e)=>{
+      if(menu.style.display === 'block' && !menu.contains(e.target)){
+        hideHistoryCtxMenu();
+      }
+    }, true);
+
+    window.addEventListener('scroll', ()=>{ if(menu.style.display==='block') hideHistoryCtxMenu(); }, true);
+    window.addEventListener('resize', ()=>{ if(menu.style.display==='block') hideHistoryCtxMenu(); });
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape') hideHistoryCtxMenu();
+    });
+  });
+})();
+
+
 
 
 let darkBg = true;
@@ -1340,9 +1638,13 @@ const BUILTIN_FONTS = [
   {name:"Serif", css:'ui-serif, Georgia, "Times New Roman", Times, serif'},
   {name:"Sans", css:'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'},
   {name:"Garamond", css:'Garamond, Georgia, serif'},
-  {name:"Papyrus (if installed)", css:'Papyrus, "Comic Sans MS", cursive'},
-  {name:"Cinzel (if installed)", css:'Cinzel, serif'},
-  {name:"Uncial Antiqua (if installed)", css:'"Uncial Antiqua", serif'}
+  {name:"Papyrus", css:'Papyrus, "Comic Sans MS", cursive'},
+  {name:"Cinzel", css:'Cinzel, serif'},
+  {name:"Uncial Antiqua", css:'"Uncial Antiqua", serif'},
+  {name:"IM Fell English", css:'"IM Fell English", serif'},
+  {name:"Cormorant SC", css:'"Cormorant SC", serif'},
+  {name:"Germania One", css:'"Germania One", cursive'},
+  {name:"Pirata One", css:'"Pirata One", cursive'}
 ];
 let customFontCount = 0;
 
@@ -1507,7 +1809,9 @@ function star(cx,cy,r1,r2,points,rot=0){
     if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
   }
 }
-function ring(r,w,col,a=1){ stroke(()=>circle(0,0,r), w, col, a); }
+let RECORDING_DETAILS = false;
+let RECORDED_DETAIL_SEGMENTS = null;
+function ring(r,w,col,a=1){ if(RECORDING_DETAILS) return; stroke(()=>circle(0,0,r), w, col, a); }
 function orbs(r, count, orbR, col, w, a=1, rot=0, innerDot=true){
   for(let i=0;i<count;i++){
     const ang = rot + i*(Math.PI*2/count);
@@ -1652,11 +1956,25 @@ function ringRunes(rng, r, count, col, w, alpha, rot=0){
 }
 
 /* ---------------- Central symbol ---------------- */
+const CENTER_LIBRARIES = {
+  alchemy: ["☉","☽","☿","♀","⊕","♂","♃","♄","♅","♆","♇","⚗","🜁","🜂","🜃","🜄","🜔","🜍","🜎","🜏","🜐","🜑","🜒","🜓","🜕","🜖","🜗","🜘","🜙","🜚","🜛","🜜","🜝","🜞","🜟","🜠","🜡","🜢","🜣","🜤","🜥","🜦","🜧","🜨","🜩","🜪","🜫","🜬","🜭","🜮","🜯","🜰","🜱","🜲","🜳","🜴","🜵","🜶","🜷","🜸","🜹","🜺","🜻","🜼","🜽","🜾","🜿"],
+  zodiac: ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"],
+  elements: ["🜁","🜂","🜃","🜄","⟠","△","▽","◻","◯"],
+  runes: [..."ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛋᛏᛒᛖᛗᛚᛜᛞᛟ"]
+};
+
 function drawCentralSymbol(rng, coreR, colMain, colSub, strokeW, mode, text, sizePx){
   if(!mode || mode==="none") return;
   ctx.save();
   ctx.globalAlpha = 0.92;
-  const maxR = coreR*0.82;
+  // Center Size should always scale the entire center design (not just specific modes).
+  // sizePx is the UI slider value (default ~110). We convert it to a scale factor and
+  // apply it to the core radius budget coming from the selected template.
+  const base = 110;
+  const scale = Math.max(0.18, Math.min(2.2, (Number(sizePx ?? base) / base)));
+  // Allow the user to push slightly beyond the template's suggested core radius,
+  // but keep it bounded so it can't blow out into the inner rings.
+  const maxR = Math.max(4, Math.min(coreR*1.28, coreR*0.82*scale));
 
   if(mode==="circle"){
     ring(maxR*0.62, strokeW*0.9, colMain, 0.9);
@@ -1680,7 +1998,260 @@ function drawCentralSymbol(rng, coreR, colMain, colSub, strokeW, mode, text, siz
     runeGlyph(rng, 0, 0, s, 0);
     ctx.restore();
     ring(maxR*0.62, strokeW*0.6, colSub, 0.55);
+
+  
+  }else if(mode==="wheel"){
+    // Text Circle: place the current center text around a circle using the currently selected font.
+    const raw = String(centerState.text || "").trim();
+    const text = raw.length ? raw : "ARCANE";
+    const count = Math.max(12, Math.min(96, Number(centerState.wheelCount ?? (text.length*6))));
+    const rad = maxR*0.58;
+
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = colMain;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // font size scales with radius but stays readable
+    const px = Math.max(10, Math.min(34, rad*0.22));
+    ctx.font = `600 ${px}px ${currentFontCSS()}`;
+
+    // We repeat the string (with separators) so we always have enough glyphs.
+    const seq = (text + " • ").repeat(Math.ceil(count / (text.length + 3)) + 1);
+
+    for(let i=0;i<count;i++){
+      const a = (-Math.PI/2) + i*(Math.PI*2/count) + (angle*0.18);
+      const x = Math.cos(a)*rad;
+      const y = Math.sin(a)*rad;
+      const ch = seq[i % seq.length];
+
+      ctx.save();
+      ctx.translate(x,y);
+      // rotate so letters face outward (tangent)
+      ctx.rotate(a + Math.PI/2);
+      ctx.fillText(ch, 0, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // guide rings
+    ring(rad*1.15, strokeW*0.65, colSub, 0.55);
+    ring(maxR*0.32, strokeW*0.55, colSub, 0.35);
+
+  }else if(mode==="orb"){
+
+    const s = Math.max(0, Math.min(1, Number(centerState.orbStrength ?? 0.75)));
+    const p = Math.max(0, Math.min(1, Number(centerState.orbPulse ?? 0.6)));
+    const n = Math.max(0, Math.min(1, Number(centerState.orbNoise ?? 0.35)));
+    const pulse = 0.85 + 0.15*Math.sin(angle*2.2)*p;
+    const rr = maxR*0.70*pulse;
+    // soft glow layers
+    for(let k=6;k>=1;k--){
+      const t = k/6;
+      ctx.fillStyle = colMain;
+      ctx.globalAlpha = 0.06*s*t;
+      ctx.beginPath();
+      ctx.arc(0,0, rr*(1 + (1-t)*0.65), 0, Math.PI*2);
+      ctx.fill();
+    }
+    // inner core
+    ctx.globalAlpha = 0.28 + 0.35*s;
+    ctx.fillStyle = colSub;
+    ctx.beginPath();
+    ctx.arc(0,0, rr*0.55, 0, Math.PI*2);
+    ctx.fill();
+
+    // noise/grain ring
+    if(n>0){
+      ctx.save();
+      ctx.globalAlpha = 0.18*n;
+      ctx.strokeStyle = colMain;
+      ctx.lineWidth = Math.max(1, strokeW*0.35);
+      const dots = 180;
+      for(let i=0;i<dots;i++){
+        const a = i*(Math.PI*2/dots);
+        const jitter = (rng()*2-1) * (rr*0.08*n);
+        const rj = rr*0.85 + jitter;
+        const x = Math.cos(a)*rj;
+        const y = Math.sin(a)*rj;
+        ctx.beginPath();
+        ctx.arc(x,y, Math.max(0.6, strokeW*0.12), 0, Math.PI*2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+    ring(maxR*0.62, strokeW*0.6, colSub, 0.40);
+}else if(mode==="knot"){
+  const density = Math.max(3, Math.min(16, Number(centerState.knotDensity ?? 9)));
+  const weave = Math.max(0, Math.min(1, Number(centerState.knotWeave ?? 0.55)));
+  const rad = maxR*0.60;
+  const amp = rad*(0.09 + 0.07*weave);
+  const w = strokeW*(0.70 + 0.25*weave);
+
+  // base guide ring
+  ring(rad*1.14, strokeW*0.55, colSub, 0.45);
+
+  // interlaced double-path using a "woven" radial modulation
+  function knotPath(phase){
+    ctx.beginPath();
+    const steps = density*36;
+    for(let i=0;i<=steps;i++){
+      const a = i*(Math.PI*2/steps);
+      const wob = Math.sin(a*density + phase) * amp;
+      const r = rad + wob;
+      const x = Math.cos(a)*r;
+      const y = Math.sin(a)*r;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+  }
+
+  // Under strand
+  ctx.save();
+  ctx.globalAlpha = 0.42 + 0.18*weave;
+  stroke(()=>knotPath(0.0 + angle*0.25), w*0.92, colSub, 0.70);
+  ctx.restore();
+
+  // Over strand
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  stroke(()=>knotPath(Math.PI/2 + angle*0.25), w, colMain, 0.90);
+  ctx.restore();
+
+  // center anchor
+  ctx.fillStyle = colMain;
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.arc(0,0, Math.max(2.5, strokeW*0.55), 0, Math.PI*2);
+  ctx.fill();
+
+}else if(mode==="eye"){
+  const open = Math.max(0.05, Math.min(1, Number(centerState.eyeOpen ?? 0.62)));
+  const slit = Math.max(0, Math.min(1, Number(centerState.eyeSlit ?? 0.55)));
+  const rad = maxR*0.62;
+
+  // Outer eye outline (almond)
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.lineWidth = strokeW*0.85;
+  ctx.strokeStyle = colMain;
+  ctx.beginPath();
+  const h = rad*(0.28 + 0.42*open);
+  // top arc
+  ctx.moveTo(-rad,0);
+  ctx.quadraticCurveTo(0,-h, rad,0);
+  // bottom arc
+  ctx.quadraticCurveTo(0, h, -rad,0);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+
+  // Iris glow
+  const irisR = rad*(0.22 + 0.12*open);
+  for(let k=5;k>=1;k--){
+    const t = k/5;
+    ctx.fillStyle = colSub;
+    ctx.globalAlpha = 0.06*t;
+    ctx.beginPath();
+    ctx.arc(0,0, irisR*(1 + (1-t)*1.2), 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Iris fill
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = colSub;
+  ctx.beginPath();
+  ctx.arc(0,0, irisR, 0, Math.PI*2);
+  ctx.fill();
+
+  // Pupil slit
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.strokeStyle = colMain;
+  ctx.lineWidth = Math.max(1, strokeW*0.55);
+  ctx.beginPath();
+  const slitH = irisR*(0.35 + 0.95*slit);
+  ctx.moveTo(0, -slitH);
+  ctx.lineTo(0, slitH);
+  ctx.stroke();
+  ctx.restore();
+
+  ring(rad*1.06, strokeW*0.55, colSub, 0.35);
+
+}else if(mode==="bloom"){
+  const petals = Math.max(5, Math.min(36, Number(centerState.bloomPetals ?? 14)));
+  const layers = Math.max(1, Math.min(4, Number(centerState.bloomLayers ?? 2)));
+  const twist  = Math.max(0, Math.min(1, Number(centerState.bloomTwist ?? 0.35)));
+  const rad = maxR*0.62;
+
+  ring(rad*1.10, strokeW*0.55, colSub, 0.40);
+
+  for(let L=0; L<layers; L++){
+    const tL = (layers===1) ? 0 : (L/(layers-1));
+    const r = rad*(0.55 + 0.38*(1-tL));
+    const a0 = angle*(0.20 + 0.35*twist) + tL*(Math.PI/petals);
+    const w = strokeW*(0.55 + 0.20*(1-tL));
+    const alpha = 0.82 - 0.18*tL;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    for(let i=0;i<petals;i++){
+      const a = a0 + i*(Math.PI*2/petals);
+      const px = Math.cos(a)*r*0.35;
+      const py = Math.sin(a)*r*0.35;
+      const rx = r*(0.85 - 0.12*tL);
+      const ry = r*(0.25 + 0.10*twist);
+      stroke(()=>{
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(a);
+        ctx.beginPath();
+        ctx.ellipse(0,0, rx, ry, 0, 0, Math.PI*2);
+        ctx.restore();
+      }, w, (L%2===0)?colMain:colSub, 0.90);
+    }
+    ctx.restore();
+  }
+
+  // center seed
+  ctx.save();
+  ctx.globalAlpha = 0.65;
+  ctx.fillStyle = colMain;
+  ctx.beginPath();
+  ctx.arc(0,0, Math.max(2.5, strokeW*0.6), 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+}else if(mode==="tri"){
+  const count = Math.max(1, Math.min(3, Number(centerState.triCount ?? 2)));
+  const spin = Math.max(0, Math.min(1, Number(centerState.triSpin ?? 0.25)));
+  const rad = maxR*0.64;
+
+  ring(rad*1.10, strokeW*0.55, colSub, 0.40);
+
+  for(let i=0;i<count;i++){
+    const t = (count===1)?0:(i/(count-1));
+    const r = rad*(0.92 - 0.18*t);
+    const rot = angle*(0.12 + 0.35*spin) + t*Math.PI/3;
+    const w = strokeW*(0.70 - 0.12*t);
+    const col = (i%2===0)?colMain:colSub;
+    stroke(()=>poly(0,0, r, 3, rot - Math.PI/2), w, col, 0.90);
+  }
+
+  // central alchemical dot
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = colSub;
+  ctx.beginPath();
+  ctx.arc(0,0, Math.max(2.2, strokeW*0.55), 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+
   }else if(mode==="image"){
+
+
     if(!centerImageBitmap){
       // placeholder if no image loaded
       stroke(()=>poly(0,0, maxR*0.58, 4, 0), strokeW*0.8, colMain, 0.85);
@@ -2219,17 +2790,26 @@ function drawSealTemplate(tpl, rng, R, ringGap, colMain, colSub, lw, complexity,
 
 /* ---------------- State-driven inscriptions UI ---------------- */
 let inscriptionState = { rotateTarget: "whole", defaultText: "" };
-let centerState = { mode: "none", text: "", size: 110 };
+let centerState = { mode: "none", text: "", size: 110, wheelCount: 36, orbStrength: 0.75, orbPulse: 0.6, orbNoise: 0.35, knotDensity: 9, knotWeave: 0.55, eyeOpen: 0.62, eyeSlit: 0.55, bloomPetals: 14, bloomLayers: 2, bloomTwist: 0.35, triCount: 2, triSpin: 0.25 };
 let centerImageBitmap = null;
 let centerImageInfo = {w:0,h:0};
 
 function getRotateTarget(){ return inscriptionState.rotateTarget || "whole"; }
 
 function buildInscriptionsUI(){
-  const host = el('inscriptionsUI');
-  host.innerHTML = "";
-  const block = document.createElement('div');
-  block.className = "inscBlock";
+  // Split UI into two buckets so the right panel can have clean categories.
+  // Fallback to the legacy host if this HTML is ever embedded elsewhere.
+  const hostText = el('textOptionsUI') || el('inscriptionsUI');
+  const hostCenter = el('centerOptionsUI') || el('inscriptionsUI') || hostText;
+
+  if(hostText) hostText.innerHTML = "";
+  if(hostCenter && hostCenter !== hostText) hostCenter.innerHTML = "";
+
+  const textBlock = document.createElement('div');
+  textBlock.className = "inscBlock";
+
+  const centerBlock = document.createElement('div');
+  centerBlock.className = "inscBlock";
 
   // rotate row
   const r1 = document.createElement('div'); r1.className="inscRow";
@@ -2255,7 +2835,7 @@ function buildInscriptionsUI(){
   const r3 = document.createElement('div'); r3.className="inscRow";
   const l3 = document.createElement('label'); l3.textContent="Center Mode";
   const s3 = document.createElement('select'); s3.id="centerMode";
-  s3.innerHTML = `
+    s3.innerHTML = `
     <option value="none">None</option>
     <option value="circle">Circle</option>
     <option value="dot">Dot</option>
@@ -2263,14 +2843,115 @@ function buildInscriptionsUI(){
     <option value="rune">Rune</option>
     <option value="alpha">Text</option>
     <option value="glyph">Glyph</option>
-    <option value="image">Image (512x512)</option>`;
+    <option value="wheel">Text Circle</option>
+    <option value="orb">Glowing Orb</option>
+<option value="knot">Sigil Knot</option>
+    <option value="eye">Void Eye</option>
+    <option value="bloom">Fractal Bloom</option>
+    <option value="tri">Alchemical Triangles</option>
+<option value="image">Image (512x512)</option>`;
   s3.value = centerState.mode;
-  s3.addEventListener('input', ()=>{ centerState.mode = s3.value; onParamsChanged(); });
+  s3.addEventListener('input', ()=>{ centerState.mode = s3.value; refreshCenterRows(); onParamsChanged(); });
   const b3 = document.createElement('div'); b3.className="badge"; b3.textContent="inside";
   r3.appendChild(l3); r3.appendChild(s3); r3.appendChild(b3);
 
+
+  // text circle controls
+  const rWheel = document.createElement('div'); rWheel.className="inscRow"; rWheel.id="rowCenterWheel";
+  const lWheel = document.createElement('label'); lWheel.textContent="Text Circle Count";
+  const wWheel = document.createElement('input'); wWheel.type="range"; wWheel.min="12"; wWheel.max="96"; wWheel.step="1"; wWheel.id="centerWheelCount";
+  wWheel.value = String(centerState.wheelCount ?? 36);
+  wWheel.addEventListener('input', ()=>{ centerState.wheelCount = Number(wWheel.value); if(!el('animate').checked) draw(angle); });
+  const bWheel = document.createElement('div'); bWheel.className="badge"; bWheel.textContent="chars";
+  rWheel.appendChild(lWheel); rWheel.appendChild(wWheel); rWheel.appendChild(bWheel);
+
+
+    // orb controls (for Orb)
+  function mkOrbRow(id, label, min, max, step, val, badge){
+    const r = document.createElement('div'); r.className="inscRow"; r.id="row"+id;
+    const l = document.createElement('label'); l.textContent=label;
+    const w = document.createElement('input'); w.type="range"; w.min=String(min); w.max=String(max); w.step=String(step); w.id=id;
+    w.value = String(val);
+    const b = document.createElement('div'); b.className="badge"; b.textContent=badge;
+    r.appendChild(l); r.appendChild(w); r.appendChild(b);
+    return {r,w};
+  }
+  const orbA = mkOrbRow("centerOrbStrength","Orb Strength",0,1,0.01, centerState.orbStrength ?? 0.75,"glow");
+  const orbB = mkOrbRow("centerOrbPulse","Orb Pulse",0,1,0.01, centerState.orbPulse ?? 0.6,"anim");
+  const orbC = mkOrbRow("centerOrbNoise","Orb Noise",0,1,0.01, centerState.orbNoise ?? 0.35,"grain");
+  orbA.w.addEventListener('input', ()=>{ centerState.orbStrength = Number(orbA.w.value); if(!el('animate').checked) draw(angle); });
+  orbB.w.addEventListener('input', ()=>{ centerState.orbPulse = Number(orbB.w.value); if(!el('animate').checked) draw(angle); });
+  orbC.w.addEventListener('input', ()=>{ centerState.orbNoise = Number(orbC.w.value); if(!el('animate').checked) draw(angle); });
+
+// knot controls
+const knotA = mkOrbRow("centerKnotDensity","Knot Density",3,16,1, centerState.knotDensity ?? 9,"loops");
+const knotB = mkOrbRow("centerKnotWeave","Knot Weave",0,1,0.01, centerState.knotWeave ?? 0.55,"weave");
+knotA.w.addEventListener('input', ()=>{ centerState.knotDensity = Number(knotA.w.value); if(!el('animate').checked) draw(angle); });
+knotB.w.addEventListener('input', ()=>{ centerState.knotWeave = Number(knotB.w.value); if(!el('animate').checked) draw(angle); });
+
+// void eye controls
+const eyeA = mkOrbRow("centerEyeOpen","Eye Openness",0,1,0.01, centerState.eyeOpen ?? 0.62,"open");
+const eyeB = mkOrbRow("centerEyeSlit","Pupil Slit",0,1,0.01, centerState.eyeSlit ?? 0.55,"slit");
+eyeA.w.addEventListener('input', ()=>{ centerState.eyeOpen = Number(eyeA.w.value); if(!el('animate').checked) draw(angle); });
+eyeB.w.addEventListener('input', ()=>{ centerState.eyeSlit = Number(eyeB.w.value); if(!el('animate').checked) draw(angle); });
+
+// fractal bloom controls
+const bloomA = mkOrbRow("centerBloomPetals","Bloom Petals",5,36,1, centerState.bloomPetals ?? 14,"petals");
+const bloomB = mkOrbRow("centerBloomLayers","Bloom Layers",1,4,1, centerState.bloomLayers ?? 2,"layers");
+const bloomC = mkOrbRow("centerBloomTwist","Bloom Twist",0,1,0.01, centerState.bloomTwist ?? 0.35,"twist");
+bloomA.w.addEventListener('input', ()=>{ centerState.bloomPetals = Number(bloomA.w.value); if(!el('animate').checked) draw(angle); });
+bloomB.w.addEventListener('input', ()=>{ centerState.bloomLayers = Number(bloomB.w.value); if(!el('animate').checked) draw(angle); });
+bloomC.w.addEventListener('input', ()=>{ centerState.bloomTwist = Number(bloomC.w.value); if(!el('animate').checked) draw(angle); });
+
+// triangle stack controls
+const triA = mkOrbRow("centerTriCount","Triangle Count",1,3,1, centerState.triCount ?? 2,"stack");
+const triB = mkOrbRow("centerTriSpin","Triangle Spin",0,1,0.01, centerState.triSpin ?? 0.25,"spin");
+triA.w.addEventListener('input', ()=>{ centerState.triCount = Number(triA.w.value); if(!el('animate').checked) draw(angle); });
+triB.w.addEventListener('input', ()=>{ centerState.triSpin = Number(triB.w.value); if(!el('animate').checked) draw(angle); });
+
+  function refreshCenterRows(){
+    const m = centerState.mode;
+    const showWheel = (m==="wheel");
+    const showOrb   = (m==="orb");
+    const showKnot  = (m==="knot");
+    const showEye   = (m==="eye");
+    const showBloom = (m==="bloom");
+    const showTri   = (m==="tri");
+
+    rWheel.style.display = showWheel ? "" : "none";
+
+    orbA.r.style.display = showOrb ? "" : "none";
+    orbB.r.style.display = showOrb ? "" : "none";
+    orbC.r.style.display = showOrb ? "" : "none";
+
+    knotA.r.style.display = showKnot ? "" : "none";
+    knotB.r.style.display = showKnot ? "" : "none";
+
+    eyeA.r.style.display = showEye ? "" : "none";
+    eyeB.r.style.display = showEye ? "" : "none";
+
+    bloomA.r.style.display = showBloom ? "" : "none";
+    bloomB.r.style.display = showBloom ? "" : "none";
+    bloomC.r.style.display = showBloom ? "" : "none";
+
+    triA.r.style.display = showTri ? "" : "none";
+    triB.r.style.display = showTri ? "" : "none";
+
+    // Text box used for alpha/glyph/wheel only
+    const rowText = el('rowCenterText');
+    if(rowText){
+      rowText.style.display = (m==="alpha" || m==="glyph" || m==="wheel") ? "" : "none";
+    }
+
+    // Image upload row exists already; hide unless image mode
+    const rowImg = el('rowCenterImage');
+    if(rowImg){
+      rowImg.style.display = (m==="image") ? "" : "none";
+    }
+  }
+
   // center text
-  const r4 = document.createElement('div'); r4.className="inscRow";
+  const r4 = document.createElement('div'); r4.className="inscRow"; r4.id="rowCenterText";
   const l4 = document.createElement('label'); l4.textContent="Center Text";
   const t4 = document.createElement('input'); t4.id="centerText"; t4.type="text";
   t4.placeholder = "e.g. A, ☉, ᛉ, or a short word";
@@ -2281,7 +2962,7 @@ function buildInscriptionsUI(){
 
   
   // center image upload (used when Center Mode = Image)
-  const rImg = document.createElement('div'); rImg.className="inscRow";
+  const rImg = document.createElement('div'); rImg.className="inscRow"; rImg.id="rowCenterImage";
   const lImg = document.createElement('label'); lImg.textContent="Center Image";
   const fImg = document.createElement('input'); fImg.id="centerImgUpload"; fImg.type="file";
   fImg.accept = "image/png,image/jpeg,image/webp,image/gif";
@@ -2310,10 +2991,33 @@ function buildInscriptionsUI(){
   const nn = document.createElement('input'); nn.id="centerSizeN"; nn.type="number"; nn.min="20"; nn.max="220"; nn.step="1"; nn.value=String(centerState.size ?? 110);
   r5.appendChild(l5); r5.appendChild(rr); r5.appendChild(nn);
 
-  block.appendChild(r1); block.appendChild(r2); block.appendChild(r3); block.appendChild(r4); block.appendChild(rImg); block.appendChild(r5);
-  host.appendChild(block);
+  textBlock.appendChild(r1); textBlock.appendChild(r2);
+  if(hostText) hostText.appendChild(textBlock);
+
+  centerBlock.appendChild(r3);
+  // Mode-specific controls (visibility handled by refreshCenterRows)
+  centerBlock.appendChild(rWheel);
+  centerBlock.appendChild(orbA.r);
+  centerBlock.appendChild(orbB.r);
+  centerBlock.appendChild(orbC.r);
+  centerBlock.appendChild(knotA.r);
+  centerBlock.appendChild(knotB.r);
+  centerBlock.appendChild(eyeA.r);
+  centerBlock.appendChild(eyeB.r);
+  centerBlock.appendChild(bloomA.r);
+  centerBlock.appendChild(bloomB.r);
+  centerBlock.appendChild(bloomC.r);
+  centerBlock.appendChild(triA.r);
+  centerBlock.appendChild(triB.r);
+  centerBlock.appendChild(r4);
+  centerBlock.appendChild(rImg);
+  centerBlock.appendChild(r5);
+  if(hostCenter) hostCenter.appendChild(centerBlock);
 
   bindPair('centerSize','centerSizeN', ()=>{ centerState.size = Number(el('centerSize').value); onParamsChanged(); });
+
+  // Ensure correct visibility on first render
+  refreshCenterRows();
 }
 
 /* ---------------- Layer system UI ---------------- */
@@ -2365,12 +3069,14 @@ function buildLayerSystemUI(){
     row.style.gap = "10px";
 
     const head = document.createElement('div');
+    head.className = "layerHead";
     head.style.display = "flex";
     head.style.alignItems = "center";
     head.style.justifyContent = "space-between";
     head.style.gap = "10px";
 
     const left = document.createElement('div');
+    left.className = "layerHeadLeft";
     left.style.display = "flex";
     left.style.alignItems = "center";
     left.style.gap = "10px";
@@ -2381,6 +3087,7 @@ function buildLayerSystemUI(){
     cb.addEventListener('change', ()=>{ cfg.on = !!cb.checked; onParamsChanged(); });
 
     const title = document.createElement('div');
+    title.className = "layerHeadTitle";
     title.style.fontWeight = "750";
     title.style.fontSize = "13px";
     title.textContent = LAYER_LABELS[key] || key;
@@ -2388,7 +3095,7 @@ function buildLayerSystemUI(){
     left.appendChild(cb); left.appendChild(title);
 
     const pill = document.createElement('div');
-    pill.className = "badge";
+    pill.className = "badge layerKey";
     pill.textContent = key;
     head.appendChild(left);
     head.appendChild(pill);
@@ -2918,6 +3625,37 @@ function clipPie(cx, cy, r, p){
   ctx.closePath();
 }
 
+// Reveal helper: start at multiple "tips" on the outer edge, then draw inward and connect.
+function clipTipInwardReveal(ctxX, cx, cy, outerR, innerR, tips, p){
+  p = Math.max(0, Math.min(1, p));
+  tips = Math.max(3, Math.min(18, tips|0));
+  const span = (Math.PI*2) / tips;
+  const halfW = span * (0.16 + 0.10*(1-p));
+  const frontR = outerR - (outerR - innerR) * p; // moves inward
+
+  ctxX.beginPath();
+  // radial wedges that extend from the outer edge towards the center as p grows
+  for(let i=0;i<tips;i++){
+    const a = -Math.PI/2 + i*span;
+    const a0 = a - halfW;
+    const a1 = a + halfW;
+
+    // build a thin wedge (annular sector) between frontR and outerR
+    ctxX.moveTo(cx + Math.cos(a0)*outerR, cy + Math.sin(a0)*outerR);
+    ctxX.arc(cx, cy, outerR, a0, a1, false);
+    ctxX.lineTo(cx + Math.cos(a1)*frontR, cy + Math.sin(a1)*frontR);
+    ctxX.arc(cx, cy, frontR, a1, a0, true);
+    ctxX.closePath();
+  }
+  // A small center connection that grows late in the reveal so tips feel like they connect
+  if(p > 0.42){
+    const pc = (p - 0.42) / 0.58;
+    const cr = innerR * (0.35 + 0.85*easeOutCubic(pc));
+    ctxX.moveTo(cx + cr, cy);
+    ctxX.arc(cx, cy, cr, 0, Math.PI*2);
+  }
+}
+
 async function snapshotBitmap(maxPhase, rotAngle){
   // Draw the requested phase onto the main canvas, then snapshot it into an ImageBitmap (fast) or Image fallback.
   // Important for summoning reveal: snapshot with a transparent background so unrevealed areas stay black.
@@ -2935,6 +3673,179 @@ async function snapshotBitmap(maxPhase, rotAngle){
   return img;
 }
 
+
+/* -------- Record & replay detail strokes (follow actual generated lines) -------- */
+function recordDetailSegments(rotAngle){
+  // Monkeypatch core ctx path methods to capture stroke segments in the exact order they are drawn.
+  const segs = [];
+  const orig = {
+    beginPath: ctx.beginPath.bind(ctx),
+    moveTo: ctx.moveTo.bind(ctx),
+    lineTo: ctx.lineTo.bind(ctx),
+    arc: ctx.arc.bind(ctx),
+    closePath: ctx.closePath.bind(ctx),
+    stroke: ctx.stroke.bind(ctx),
+    rect: ctx.rect ? ctx.rect.bind(ctx) : null
+  };
+
+  let path = [];
+  let startPt = null;
+  let cur = null;
+
+  function addLine(a,b){
+    if(!a || !b) return;
+    const dx = b[0]-a[0], dy=b[1]-a[1];
+    const len = Math.hypot(dx,dy);
+    if(len < 0.0001) return;
+    segs.push({
+      x1:a[0], y1:a[1], x2:b[0], y2:b[1],
+      len,
+      lw: ctx.lineWidth,
+      cap: ctx.lineCap,
+      join: ctx.lineJoin,
+      col: ctx.strokeStyle,
+      a: ctx.globalAlpha,
+      comp: ctx.globalCompositeOperation
+    });
+  }
+
+  ctx.beginPath = function(){
+    path = [];
+    startPt = null;
+    cur = null;
+    return orig.beginPath();
+  };
+  ctx.moveTo = function(x,y){
+    cur = [x,y];
+    if(!startPt) startPt = [x,y];
+    path.push(cur);
+    return orig.moveTo(x,y);
+  };
+  ctx.lineTo = function(x,y){
+    const next = [x,y];
+    addLine(cur, next);
+    cur = next;
+    path.push(cur);
+    return orig.lineTo(x,y);
+  };
+  ctx.arc = function(x,y,r,sa,ea,ccw){
+    // Approximate arcs into small line segments so we can animate them.
+    // Keep sample count modest for performance.
+    const sweep = (ccw ? (sa-ea) : (ea-sa));
+    const absSweep = Math.abs(sweep);
+    const steps = Math.max(6, Math.min(48, Math.floor(absSweep / (Math.PI/10))));
+    let prev = null;
+    for(let i=0;i<=steps;i++){
+      const t = i/steps;
+      const ang = ccw ? (sa - absSweep*t) : (sa + absSweep*t);
+      const px = x + Math.cos(ang)*r;
+      const py = y + Math.sin(ang)*r;
+      if(i===0){
+        if(cur){
+          // if current point exists, connect to arc start
+          addLine(cur, [px,py]);
+        } else {
+          // align path start
+          startPt = [px,py];
+        }
+        cur = [px,py];
+        prev = cur;
+      } else {
+        const nxt = [px,py];
+        addLine(prev, nxt);
+        prev = nxt;
+        cur = nxt;
+      }
+    }
+    return orig.arc(x,y,r,sa,ea,ccw);
+  };
+  ctx.closePath = function(){
+    if(cur && startPt) addLine(cur, startPt);
+    return orig.closePath();
+  };
+  ctx.stroke = function(){
+    return orig.stroke();
+  };
+
+  // Record only the detail-phase lines (skip rings while recording).
+  RECORDING_DETAILS = true;
+  try{
+    draw(rotAngle, {maxPhase: 1});
+  } finally {
+    RECORDING_DETAILS = false;
+    // restore
+    ctx.beginPath = orig.beginPath;
+    ctx.moveTo = orig.moveTo;
+    ctx.lineTo = orig.lineTo;
+    ctx.arc = orig.arc;
+    ctx.closePath = orig.closePath;
+    ctx.stroke = orig.stroke;
+    if(orig.rect) ctx.rect = orig.rect;
+  }
+
+  // Precompute total length
+  let total = 0;
+  for(const s of segs) total += s.len;
+  return {segs, total};
+}
+
+function drawDetailSegmentsProgress(record, progress, ctxX=ctx, rotAngle=0, opts=null){
+  if(!record || !record.segs || record.segs.length===0) return;
+  const segs = record.segs;
+  const total = record.total || 1;
+  let target = Math.max(0, Math.min(1, progress)) * total;
+
+  ctxX.save();
+  // IMPORTANT: recorded segments are in the sigil's local coordinate space
+  // (after draw() translated to canvas center, and (optionally) rotated the whole sigil).
+  // Re-apply the same transform here, otherwise the detail strokes will appear offset.
+  // Default: match on-screen canvas transform.
+  // Export: caller can provide {exportScale, exportCx, exportCy} so the detail strokes
+  // line up with the padded/fit export framing.
+  if(opts && typeof opts.exportScale === 'number' && typeof opts.exportCx === 'number' && typeof opts.exportCy === 'number'){
+    ctxX.translate(opts.exportCx, opts.exportCy);
+    ctxX.scale(opts.exportScale, opts.exportScale);
+    if(getRotateTarget() === 'whole') ctxX.rotate(rotAngle);
+  }else{
+    const cw = ctxX.canvas.width, ch = ctxX.canvas.height;
+    ctxX.translate(cw/2, ch/2);
+    if(getRotateTarget() === 'whole') ctxX.rotate(rotAngle);
+  }
+
+  // Slightly unstable early, stabilizes as it completes
+  const wob = 1 - progress;
+  const flick = 0.55 + 0.45*Math.sin(performance.now()*0.03);
+  ctxX.globalAlpha = 0.75 + 0.25*(1-wob)*flick;
+
+  for(let i=0;i<segs.length;i++){
+    const s = segs[i];
+    if(target <= 0) break;
+
+    const drawLen = Math.min(s.len, target);
+    const frac = drawLen / s.len;
+
+    ctxX.save();
+    ctxX.globalCompositeOperation = s.comp || "source-over";
+    ctxX.strokeStyle = s.col;
+    ctxX.lineWidth = s.lw;
+    ctxX.lineCap = s.cap || "round";
+    ctxX.lineJoin = s.join || "round";
+    ctxX.globalAlpha *= (s.a ?? 1);
+
+    const x = s.x1 + (s.x2 - s.x1)*frac;
+    const y = s.y1 + (s.y2 - s.y1)*frac;
+
+    ctxX.beginPath();
+    ctxX.moveTo(s.x1, s.y1);
+    ctxX.lineTo(x, y);
+    ctxX.stroke();
+
+    ctxX.restore();
+
+    target -= drawLen;
+  }
+  ctxX.restore();
+}
 async function playSummon(){
   if(summonPlaying) return;
   summonPlaying = true;
@@ -2948,7 +3859,7 @@ async function playSummon(){
 
   // Capture phased renders (rings -> details -> text -> full (incl. center))
   const ringsBmp   = await snapshotBitmap(0, baseAngle);
-  const detailBmp  = await snapshotBitmap(1, baseAngle);
+  const detailRecord = recordDetailSegments(baseAngle);
   const textBmp    = await snapshotBitmap(2, baseAngle);
   const fullBmp    = await snapshotBitmap(3, baseAngle);
 
@@ -2985,14 +3896,15 @@ async function playSummon(){
 
     const pD = easeOutCubic(Math.min(1, Math.max(0, (ms-detailsStart)/detailsSpan)));
     const pT = easeOutCubic(Math.min(1, Math.max(0, (ms-textStart)/textSpan)));
-    const pC = easeOutBack (Math.min(1, Math.max(0, (ms-centerStart)/centerSpan)));
+    // keep the finish calm (no overshoot "boom")
+    const pC = easeOutCubic(Math.min(1, Math.max(0, (ms-centerStart)/centerSpan)));
 
     clear(bg);
 
-    // soft "magic bloom"
+    // soft "magic bloom" (only while summoning; fades to 0 at the end)
     const flick = 0.5 + 0.5*Math.sin(ts*0.018);
     ctx.save();
-    ctx.globalAlpha = 0.10 + 0.10*flick*(1-t);
+    ctx.globalAlpha = (0.08 + 0.10*flick) * (1-t);
     ctx.filter = `blur(${8 + 10*(1-t)}px)`;
     ctx.drawImage(fullBmp, 0, 0);
     ctx.restore();
@@ -3011,42 +3923,47 @@ async function playSummon(){
       clipAnnulusPie(cx, cy, summonRadii[i], thick, p);
       ctx.clip();
       ctx.drawImage(ringsBmp, 0, 0);
-      // a subtle glow "spark" riding the draw head
-      const headAng = -Math.PI/2 + Math.PI*2*p;
-      const hx = cx + Math.cos(headAng) * summonRadii[i];
-      const hy = cy + Math.sin(headAng) * summonRadii[i];
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.10 + 0.22*(1-Math.abs(0.5-p)*2);
-      ctx.filter = `blur(${6 + 8*(1-p)}px)`;
-      ctx.beginPath();
-      ctx.arc(hx, hy, 10 + 12*(1-p), 0, Math.PI*2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
       ctx.restore();
     }
     ctx.restore();
 
-    // Details: expand from center with a gentle fade
-    ctx.save();
-    const rr = wipeR * (0.15 + 0.85*pD);
-    ctx.globalAlpha = 0.25 + 0.75*pD;
-    ctx.beginPath();
-    ctx.arc(cx, cy, rr, 0, Math.PI*2);
-    ctx.clip();
-    ctx.drawImage(detailBmp, 0, 0);
-    ctx.restore();
+    // Details: draw along the actual generated "complexity" strokes (in order)
+    if(pD > 0){
+      // Draw recorded detail segments progressively
+      drawDetailSegmentsProgress(detailRecord, pD, ctx, baseAngle);
 
-    // Text: fade + tiny shimmer
+      // soft "etch" front glow (subtle, no boom)
+      const front = (1 - pD);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.03 + 0.08*(1 - Math.abs(0.5-pD)*2);
+      ctx.filter = `blur(${10 + 8*front}px)`;
+      // a calm radial haze that tracks progress
+      ctx.beginPath();
+      ctx.arc(cx, cy, wipeR*(0.15 + 0.55*pD), 0, Math.PI*2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = ringGap*0.22;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+// Text: fade + tiny shimmer
     ctx.save();
     ctx.globalAlpha = (0.15 + 0.85*pT) * (0.92 + 0.08*flick);
     ctx.drawImage(textBmp, 0, 0);
     ctx.restore();
 
-    // Center: pop in at the end (uses the full render so it matches exactly)
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, pC));
-    ctx.drawImage(fullBmp, 0, 0);
-    ctx.restore();
+    // Center: calm fade-in (clip to the core so the whole sigil doesn't "boom")
+    if(pC > 0){
+      const coreR = Math.max(ringGap*0.55, summonRadii[0] - ringGap*0.9);
+      ctx.save();
+      ctx.globalAlpha = pC;
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(8, coreR), 0, Math.PI*2);
+      ctx.clip();
+      ctx.drawImage(fullBmp, 0, 0);
+      ctx.restore();
+    }
 
     // Magical noise/grain overlay + tiny drifting offset so it feels "alive" and a bit "drawn"
     ctx.save();
@@ -3131,19 +4048,29 @@ function summonDrawTo(ctxT, W, H, ms, assets, timing){
 
   const pD = easeOutCubic(Math.min(1, Math.max(0, (ms-detailsStart)/detailsSpan)));
   const pT = easeOutCubic(Math.min(1, Math.max(0, (ms-textStart)/textSpan)));
-  const pC = easeOutBack (Math.min(1, Math.max(0, (ms-centerStart)/centerSpan)));
+  // keep the finish calm (no overshoot "boom")
+  const pC = easeOutCubic(Math.min(1, Math.max(0, (ms-centerStart)/centerSpan)));
 
   // scale helpers from main canvas space -> target space
-  const s = W / canvas.width;
+  // IMPORTANT: exports previously used `W / canvas.width`. If the on-screen canvas is smaller than the
+  // export resolution (e.g. canvas.width < 512), that scales UP and can clip the sigil.
+  // Use a "fit" scale with a little safety padding so the full sigil stays in frame.
+  const s = Math.min(W / canvas.width, H / canvas.height) * 0.94;
   const wipeR = canvas.width * 0.60 * s;
   const noise = getNoiseTile();
 
-  // soft bloom (slight, fades)
+  // soft bloom (only while summoning; fades to 0 at the end)
   const flick = 0.5 + 0.5*Math.sin(ms*0.018);
+  // draw helper that keeps the sigil centered even when we add padding
+  const dw = canvas.width * s;
+  const dh = canvas.height * s;
+  const dx = cx - dw/2;
+  const dy = cy - dh/2;
+
   ctxT.save();
-  ctxT.globalAlpha = 0.10 + 0.10*flick*(1-t);
+  ctxT.globalAlpha = (0.08 + 0.10*flick) * (1-t);
   ctxT.filter = `blur(${8 + 10*(1-t)}px)`;
-  ctxT.drawImage(assets.full, 0,0, canvas.width*s, canvas.height*s);
+  ctxT.drawImage(assets.full, dx, dy, dw, dh);
   ctxT.restore();
 
   // rings (sequential)
@@ -3167,44 +4094,49 @@ function summonDrawTo(ctxT, W, H, ms, assets, timing){
     ctxT.arc(cx, cy, ri, end, start, true);
     ctxT.closePath();
     ctxT.clip();
-    ctxT.drawImage(assets.rings, 0,0, canvas.width*s, canvas.height*s);
-
-    // spark head
-    const headAng = -Math.PI/2 + Math.PI*2*p;
-    const hx = cx + Math.cos(headAng) * r;
-    const hy = cy + Math.sin(headAng) * r;
-    ctxT.globalCompositeOperation = 'lighter';
-    ctxT.globalAlpha = 0.10 + 0.22*(1-Math.abs(0.5-p)*2);
-    ctxT.filter = `blur(${6 + 8*(1-p)}px)`;
-    ctxT.beginPath();
-    ctxT.arc(hx, hy, 10 + 12*(1-p), 0, Math.PI*2);
-    ctxT.fillStyle = '#ffffff';
-    ctxT.fill();
+    ctxT.drawImage(assets.rings, dx, dy, dw, dh);
     ctxT.restore();
   }
   ctxT.restore();
 
-  // details (center expand)
-  ctxT.save();
-  const rr = wipeR * (0.15 + 0.85*pD);
-  ctxT.globalAlpha = 0.25 + 0.75*pD;
-  ctxT.beginPath();
-  ctxT.arc(cx, cy, rr, 0, Math.PI*2);
-  ctxT.clip();
-  ctxT.drawImage(assets.detail, 0,0, canvas.width*s, canvas.height*s);
-  ctxT.restore();
+  // details: start at tips and draw inward, then connect
+    // details: draw along the actual generated "complexity" strokes (in order)
+  if(pD > 0){
+    // draw detail segments with the same centering/scale used for exports
+    drawDetailSegmentsProgress(assets.detailRecord, pD, ctxT, assets.rotAngle || 0, { exportScale:s, exportCx:cx, exportCy:cy });
+
+    // soft etch haze (calm, no boom)
+    const front = (1 - pD);
+    ctxT.save();
+    ctxT.globalCompositeOperation = 'lighter';
+    ctxT.globalAlpha = 0.03 + 0.08*(1 - Math.abs(0.5-pD)*2);
+    ctxT.filter = `blur(${10 + 8*front}px)`;
+    ctxT.beginPath();
+    ctxT.arc(cx, cy, wipeR*(0.15 + 0.55*pD), 0, Math.PI*2);
+    ctxT.strokeStyle = '#ffffff';
+    ctxT.lineWidth = ringGap*0.22;
+    ctxT.stroke();
+    ctxT.restore();
+  }
+
 
   // text
   ctxT.save();
   ctxT.globalAlpha = (0.15 + 0.85*pT) * (0.92 + 0.08*flick);
-  ctxT.drawImage(assets.text, 0,0, canvas.width*s, canvas.height*s);
+  ctxT.drawImage(assets.text, dx, dy, dw, dh);
   ctxT.restore();
 
-  // center pop (full)
-  ctxT.save();
-  ctxT.globalAlpha = Math.max(0, Math.min(1, pC));
-  ctxT.drawImage(assets.full, 0,0, canvas.width*s, canvas.height*s);
-  ctxT.restore();
+  // center: calm fade-in (clip to the core so the whole sigil doesn't "boom")
+  if(pC > 0){
+    const coreR = Math.max(ringGap*0.55*s, radii[0]*s - ringGap*0.9*s);
+    ctxT.save();
+    ctxT.globalAlpha = pC;
+    ctxT.beginPath();
+    ctxT.arc(cx, cy, Math.max(8, coreR), 0, Math.PI*2);
+    ctxT.clip();
+    ctxT.drawImage(assets.full, dx, dy, dw, dh);
+    ctxT.restore();
+  }
 
   // noise overlay (a little stronger while summoning)
   ctxT.save();
@@ -3236,10 +4168,10 @@ function summonDrawTo(ctxT, W, H, ms, assets, timing){
 
 async function buildSummonAssets(baseAngle){
   const ringsBmp   = await snapshotBitmap(0, baseAngle);
-  const detailBmp  = await snapshotBitmap(1, baseAngle);
+  const detailRecord = recordDetailSegments(baseAngle);
   const textBmp    = await snapshotBitmap(2, baseAngle);
   const fullBmp    = await snapshotBitmap(3, baseAngle);
-  return { rings:ringsBmp, detail:detailBmp, text:textBmp, full:fullBmp };
+  return { rings:ringsBmp, detailRecord, text:textBmp, full:fullBmp, rotAngle: baseAngle };
 }
 
 /* ---------------- Export Summon (GIF/MP4) ---------------- */
@@ -3811,7 +4743,7 @@ el('exportSummonMp4')?.addEventListener('click', async ()=>{
   const box = document.getElementById('changelogBox');
   const section = document.getElementById('changelogSection');
   const btn = document.getElementById('dismissChangelog');
-  const showBtn = document.getElementById('showChangelog');
+  const showBtn = document.getElementById('showChangelogTop');
   if(!box || !section || !btn) return;
 
   const id = box.getAttribute('data-changelog-id') || 'v1';
@@ -3917,5 +4849,14 @@ el('exportSummonMp4')?.addEventListener('click', async ()=>{
   }
 })();
 </script>
+
+  <!-- History right-click menu -->
+  <div id="historyCtxMenu" class="ctxMenu" style="display:none" role="menu" aria-hidden="true">
+    <div class="ctxTitle">History</div>
+    <button type="button" class="ctxItem" id="ctxExportHistoryPng">Export snapshot PNG</button>
+    <button type="button" class="ctxItem danger" id="ctxDeleteHistory">Delete snapshot</button>
+    <div class="ctxHint">Tip: right-click a thumbnail to manage it.</div>
+  </div>
+
 </body>
 </html>
