@@ -112,6 +112,28 @@ input[type="color"]{width:64px; height:36px; padding:0; border:none; background:
   font-size:12px;
   transition: transform .08s ease, filter .12s ease;
 }
+
+/* compact button for inline rows (matches site mini button styling) */
+.btnSmall{
+  flex: 0 0 auto;
+  min-width: auto;
+  padding: 7px 10px;
+  border-radius:10px;
+  background: rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:650;
+  font-size:12px;
+  transition: transform .12s var(--ease), box-shadow .12s var(--ease), border-color .12s var(--ease);
+}
+.btnSmall:hover{
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(255,255,255,.22);
+}
+.btnSmall:active{transform: translateY(0px);}
+
 .btns button:hover{filter:brightness(1.08);}
 .btns button:active{transform: translateY(1px);}
 .foot{padding:0 16px 16px; color:var(--muted); font-size:12px; line-height:1.35;}
@@ -467,7 +489,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
           </summary>
           <div class="sectionBody">
 
-            <div class="row">
+            <div class="row" data-ui="advancedOnly">
               <label for="style">Style</label>
               <select id="style">
                 <option value="seals">Seals (clean geometric)</option>
@@ -476,7 +498,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
               <div class="badge">look</div>
             </div>
 
-            <div class="row">
+            <div class="row" data-ui="advancedOnly">
               <label for="template">Template</label>
               <select id="template">
                 <option value="-1">Random</option>
@@ -586,7 +608,7 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
           </div>
         </details>
 
-        <details class="section" data-ui="advancedOnly">
+        <details class="section">
           <summary>
             <span>Motion</span>
             <span class="meta">rotate • summon</span>
@@ -604,6 +626,14 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
               <input id="speed" type="range" min="-120" max="120" step="1" value="18"/>
               <input id="speedN" type="number" min="-120" max="120" step="1" value="18"/>
             </div>
+
+
+            <div class="row">
+              <label>Rotation</label>
+              <button id="resetRotationBtn" class="btnSmall" type="button" title="Reset the current rotation back to 0°">Reset to 0°</button>
+              <div class="badge mono" id="rotationReadout">0°</div>
+            </div>
+
 
             <div class="row">
               <label>Summoning</label>
@@ -797,20 +827,16 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
           <div class="sectionBody">
             <div class="changelogBox" data-changelog-id="2026-02-22" id="changelogBox">
               <div class="changelogTop">
-                <div class="tag"><span class="mono">v0.5.2</span> <span style="opacity:.75;">•</span> <span class="mono">2026-02-22</span></div>
+                <div class="tag"><span class="mono">v0.0.0</span> <span style="opacity:.75;">•</span> <span class="mono">2026-02-22</span></div>
                 <button type="button" class="miniBtn" id="dismissChangelog">Dismiss</button>
               </div>
               <ul class="changelogList" id="changelogList">
                 <li>UI is now grouped into sections, with a Simple/Advanced mode toggle.</li>
-                <li>Added an option to play a summoning animation and export it.</li>
                 <li>Advanced technical options are hidden by default to reduce overwhelm.</li>
                 <li>Text, center symbol, and history remain on the right panel.</li>
-                <li>Added a What's New section to the right panel for update notes.</li>
-                <li>Each Ringrole can now be configured with a custom colour.</li>
-                <li>Added even more templates.</li>
               </ul>
               <div class="foot" style="padding:0; margin-top:8px;">
-                Tip: you can still access all the advanced options, they're just tucked away until you need them.
+                Tip: You can edit this changelog directly in the HTML (search for <span class="mono">What&apos;s New</span>) and bump the changelog id/date.
               </div>
             </div>
           </div>
@@ -3843,6 +3869,52 @@ el('exportSummonMp4')?.addEventListener('click', async ()=>{
   });
 
   apply();
+})();
+</script>
+
+</script>
+
+<script>
+(function(){
+  const btn = document.getElementById("resetRotationBtn");
+  const out = document.getElementById("rotationReadout");
+  if(!btn) return;
+
+  function normDeg(d){
+    d = d % 360;
+    if(d < 0) d += 360;
+    return d;
+  }
+  function updateReadout(){
+    if(!out) return;
+    const deg = (typeof angle === "number") ? normDeg(angle * 180/Math.PI) : 0;
+    out.textContent = `${Math.round(deg)}°`;
+  }
+
+  btn.addEventListener("click", ()=>{
+    // angle is the live rotation accumulator used by tick() / draw()
+    if(typeof angle === "number") angle = 0;
+    if(typeof lastTs === "number") lastTs = 0;
+    if(typeof draw === "function") draw(0);
+    updateReadout();
+  });
+
+  // keep the badge updated while animating
+  const _draw = (typeof draw === "function") ? draw : null;
+  if(_draw && !draw.__rotationPatched){
+    const wrapped = function(rotAngle=0, opts=null){
+      const r = _draw(rotAngle, opts);
+      updateReadout();
+      return r;
+    };
+    wrapped.__rotationPatched = true;
+    // preserve any flags
+    for(const k in _draw) try{ wrapped[k] = _draw[k]; }catch(e){}
+    window.draw = wrapped;
+  } else {
+    // initial update
+    updateReadout();
+  }
 })();
 </script>
 </body>
