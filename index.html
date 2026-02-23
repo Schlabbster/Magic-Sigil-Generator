@@ -756,6 +756,13 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
               <input id="gifSecondsN" type="number" min="1" max="6" step="1" value="3"/>
             </div>
 
+            <div class="row">
+              <label for="exportSize">Export Resolution</label>
+              <input id="exportSize" type="range" min="256" max="2048" step="128" value="1024"/>
+              <input id="exportSizeN" type="number" min="256" max="4096" step="128" value="1024"/>
+              <div class="badge">px</div>
+            </div>
+
           </div>
         </details>
 
@@ -955,21 +962,8 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
           <div class="sectionBody">
             <div class="changelogBox" data-changelog-id="2026-02-22" id="changelogBox">
               <div class="changelogTop">
-                <div class="tag"><span class="mono">v0.5.3</span> <span style="opacity:.75;">•</span> <span class="mono">2026-02-22</span></div>
-                <button type="button" class="miniBtn" id="dismissChangelog">Dismiss</button>
-              </div>
-              <ul class="changelogList" id="changelogList">
-                <li>UI is now grouped into sections, with a Simple/Advanced mode toggle.</li>
-                <li>Added an option to play a summoning animation and export it.</li>
-                <li>Advanced technical options are hidden by default to reduce overwhelm.</li>
-                <li>Text, center symbol, and history remain on the right panel.</li>
-                <li>Added a What's New section to the right panel for update notes.</li>
-                <li>Each Ringrole can now be configured with a custom colour.</li>
-                <li>Added even more templates.</li>
-                <li>Added a button to reset the sigils rotation.</li>
-              </ul>
-              <div class="changelogTop">
                 <div class="tag"><span class="mono">v0.5.4</span> <span style="opacity:.75;">•</span> <span class="mono">2026-02-22</span></div>
+                <button type="button" class="miniBtn" id="dismissChangelog">Dismiss</button>
               </div>
               <ul class="changelogList" id="changelogList">
                 <li>Cleaned up the UI for the right panel, moved text and center options into their own sections.</li>
@@ -978,6 +972,13 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="
                 <li>Added more built in font options.</li>
                 <li>Added a clickable link to the GitHub issues page in the footer.</li>
                 <li>Added a clickable link to buy me a coffee in the footer :)</li>
+              </ul>
+              <div class="changelogTop">
+                <div class="tag"><span class="mono">v0.5.5</span> <span style="opacity:.75;">•</span> <span class="mono">2026-02-23</span></div>
+              </div>
+              <ul class="changelogList" id="changelogList">
+                <li>Added the ability to change the export resolution.</li>
+                <li>Slightly tweaked the MP4 export settings to ensure a full loop when exported</li>
               </ul>
               <div class="foot" style="padding:0; margin-top:8px;">
                 Tip: you can still access all the advanced options, they're just tucked away until you need them.
@@ -4195,7 +4196,7 @@ async function exportSummonGif(){
   try{
     statusEl.textContent = "Preparing summon GIF…";
     const fps = Number(el('gifFps').value);
-    const baseAngle = angle || 0;
+    const baseAngle0 = baseAngle;
 
     const wasAnimating = !!el('animate').checked;
     if(wasAnimating) { el('animate').checked = false; stopAnim(); }
@@ -4206,7 +4207,7 @@ async function exportSummonGif(){
     const seconds = timing.dur / 1000;
     const framesCount = Math.max(2, Math.ceil(seconds * fps));
 
-    const W = 512, H = 512;
+    const W = getExportSize(); const H = W;
     const off = document.createElement('canvas');
     off.width = W; off.height = H;
     const offCtx = off.getContext('2d');
@@ -4268,7 +4269,7 @@ async function exportSummonVideo(desiredExt){
   const framesCount = Math.max(2, Math.ceil(seconds * fps));
 
   // record from an offscreen canvas so we don't mess with preview
-  const W = 512, H = 512;
+  const W = getExportSize(); const H = W;
   const off = document.createElement('canvas');
   off.width = W; off.height = H;
   const offCtx = off.getContext('2d');
@@ -4327,6 +4328,7 @@ bindPair('speed','speedN', ()=>{});
 bindPair('summonSpeed','summonSpeedN', ()=>{});
 bindPair('gifFps','gifFpsN', null);
 bindPair('gifSeconds','gifSecondsN', null);
+bindPair('exportSize','exportSizeN', null);
 
 ['ringRole','style','template','strokeStyle','ringTextMode'].forEach(id=> el(id).addEventListener('input', onParamsChanged));
 el('seed').addEventListener('input', onParamsChanged);
@@ -4351,34 +4353,66 @@ el('randomSeed').addEventListener('click', ()=>{
 });
 el('toggleBg').addEventListener('click', ()=>{ darkBg = !darkBg; draw(angle); });
 
+
+
+/* ---------------- Export Resolution Helper ---------------- */
+function getExportSize(){
+  const v = Number(el('exportSize')?.value || 1024);
+  return Math.max(256, Math.min(8192, v));
+}
+
+async function withExportCanvas(size, renderFn){
+  const prevW = canvas.width, prevH = canvas.height;
+  const prevAngle = angle || 0;
+  const wasAnimating = !!el('animate')?.checked;
+
+  if(wasAnimating){ el('animate').checked = false; stopAnim(); }
+
+  // Resize preview canvas for a high-res render. This resets the context state.
+  canvas.width = size;
+  canvas.height = size;
+
+  try{
+    await renderFn(prevAngle);
+  } finally {
+    // Restore preview canvas size
+    canvas.width = prevW;
+    canvas.height = prevH;
+    // Restore preview content
+    draw(prevAngle);
+    if(wasAnimating){ el('animate').checked = true; startAnim(); }
+  }
+}
 el('exportPng').addEventListener('click', ()=>{
-  const a = document.createElement('a');
-  a.download = `sigil_${el('seed').value}.png`;
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-  try{ pushHistory(currentSnapshot()); }catch(_e){}
+  const size = getExportSize();
+  withExportCanvas(size, async (baseAngle)=>{
+    statusEl.textContent = `Exporting PNG (${size}px)…`;
+    draw(baseAngle, {transparent:false});
+
+    const a = document.createElement('a');
+    a.download = `sigil_${el('seed').value}_${size}px.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+
+    statusEl.textContent = "PNG exported.";
+    try{ pushHistory(currentSnapshot()); }catch(_e){}
+  });
 });
 
 el('exportPngTransparent').addEventListener('click', ()=>{
-  // Render once with transparent background (respects layer opacities), export, then restore preview.
-  const wasAnimating = !!el('animate').checked;
-  if(wasAnimating){ el('animate').checked = false; stopAnim(); }
+  const size = getExportSize();
+  withExportCanvas(size, async (baseAngle)=>{
+    statusEl.textContent = `Exporting transparent PNG (${size}px)…`;
+    draw(baseAngle, {transparent:true});
 
-  statusEl.textContent = "Exporting transparent PNG…";
-  draw(angle, {transparent:true});
+    const a = document.createElement('a');
+    a.download = `sigil_${el('seed').value}_${size}px_transparent.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
 
-  const a = document.createElement('a');
-  a.download = `sigil_${el('seed').value}_transparent.png`;
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-
-  // restore normal preview
-  draw(angle, {transparent:false});
-  statusEl.textContent = "Transparent PNG exported.";
-
-  if(wasAnimating){ el('animate').checked = true; startAnim(); }
-
-  try{ pushHistory(currentSnapshot()); }catch(_e){}
+    statusEl.textContent = "Transparent PNG exported.";
+    try{ pushHistory(currentSnapshot()); }catch(_e){}
+  });
 });
 
 
@@ -4544,12 +4578,16 @@ el('exportGif').addEventListener('click', async ()=>{
     const seconds = Number(el('gifSeconds').value);
     const framesCount = Math.max(2, Math.floor(fps * seconds));
 
-    const W = 512, H = 512;
+    const W = getExportSize();
+    const H = W;
+
+    await withExportCanvas(W, async (baseAngle)=>{
+
     const off = document.createElement('canvas');
     off.width = W; off.height = H;
     const offCtx = off.getContext('2d');
 
-    const baseAngle = angle || 0;
+    const baseAngle0 = baseAngle;
     // Force a perfect 360° rotation over the export duration for seamless looping.
     const dir = (Number(el('speed').value) >= 0) ? 1 : -1;
     const fullTurn = dir * Math.PI * 2;
@@ -4557,7 +4595,7 @@ el('exportGif').addEventListener('click', async ()=>{
     const frameData = [];
     for(let i=0;i<framesCount;i++){
       const t = i / framesCount; // [0,1)
-      const a = baseAngle + fullTurn * t;
+      const a = baseAngle0 + fullTurn * t;
       draw(a);
       offCtx.clearRect(0,0,W,H);
       offCtx.drawImage(canvas, 0,0, W,H);
@@ -4579,6 +4617,8 @@ el('exportGif').addEventListener('click', async ()=>{
     a.href = url;
     a.click();
     setTimeout(()=>URL.revokeObjectURL(url), 15000);
+    });
+
     statusEl.textContent = "GIF exported.";
     try{ pushHistory(currentSnapshot()); }catch(_e){}
   }catch(err){
@@ -4602,6 +4642,8 @@ async function exportVideo(desiredExt){
   const seconds = Number(el('gifSeconds').value);
   const framesCount = Math.max(2, Math.floor(fps * seconds));
 
+  const size = getExportSize();
+
   const preferMp4 = (desiredExt === 'mp4');
   const mime = pickVideoMime(preferMp4);
   if(!mime){
@@ -4613,6 +4655,11 @@ async function exportVideo(desiredExt){
   statusEl.textContent = (desiredExt === 'mp4' && actualExt !== 'mp4')
     ? "MP4 not supported here — exporting WebM instead."
     : `Recording ${actualExt.toUpperCase()}…`;
+
+  // Render/record at requested export resolution (resizes the canvas temporarily)
+  const prevW = canvas.width, prevH = canvas.height;
+  canvas.width = size;
+  canvas.height = size;
 
   const stream = canvas.captureStream(fps);
   const chunks = [];
@@ -4640,6 +4687,10 @@ async function exportVideo(desiredExt){
     rec.stop();
   }
   await new Promise(res=>{ rec.onstop = ()=>res(); });
+
+  // restore preview canvas size now that recording is done
+  canvas.width = prevW;
+  canvas.height = prevH;
 
   if(wasAnimating){ el('animate').checked = true; startAnim(); }
 
